@@ -11,7 +11,7 @@ package egovframework.ocr.sample.web;
 * == 개정이력(Modification Information) ==
 * 수정 내용
 * 2023.08 정은총 최초생성
-* 2023.08 송창우 GPT_KEY 함수를 private 지정, GPT_KEY 값을 불러오기 위한 getGptKey 추가
+* 2023.08 송창우 GPT_KEY 함수를 private 지정, GPT_KEY 값을 불러오기 위한 getGptKey 추가 
 */
 public class Keys {
     /*Key*/
