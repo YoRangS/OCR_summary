@@ -53,7 +53,7 @@ import com.theokanning.openai.service.OpenAiService;
 public class OcrRestController {
     /** 이미지 업로드 디렉토리 */
     //public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
-	public static final String UPLOAD_DIR = "C:/Users/Admin/git/OCR_summary/src/main/java/saveImage/";
+	public static final String UPLOAD_DIR = KeyValue.uploadDir;
 	
     @GetMapping("/{name}")
     public String sayHello(@PathVariable String name) {

@@ -43,8 +43,9 @@ import com.theokanning.openai.service.OpenAiService;
         )
 public class OcrSampleController {
     /** 이미지 업로드 디렉토리 */
-    public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
-
+    //public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
+	public static final String UPLOAD_DIR = KeyValue.uploadDir;
+	
     @RequestMapping(value = "/test.do", method = RequestMethod.GET)
     public String test(){
         return "ocr/ocrSampleList";
