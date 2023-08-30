@@ -59,7 +59,7 @@ public class OcrRestController {
         String result="Hello eGovFramework!! name : " + name;  
         return result;
     }
-    /**
+    /** 
     * test.do이름의 POST 타입 호출을 받아 텍스트 추출
     * @param file 이미지/pdf 폴더
     * @param lang 오타수정에 사용할 언어
