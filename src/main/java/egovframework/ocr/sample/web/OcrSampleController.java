@@ -43,8 +43,8 @@ import com.theokanning.openai.service.OpenAiService;
         )
 public class OcrSampleController {
     /** 이미지 업로드 디렉토리 */
-    public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
-
+	public static final String UPLOAD_DIR = KeyValue.uploadDir;
+	
     @RequestMapping(value = "/test.do", method = RequestMethod.GET)
     public String test(){
         return "ocr/ocrSampleList";
@@ -52,7 +52,7 @@ public class OcrSampleController {
     /**
     * test.do이름의 POST 타입 호출을 받아 텍스트 추출
     * @param file 이미지/pdf 폴더
-    * @param lang 오타수정에 사용할 언어 
+    * @param lang 오타수정에 사용할 언어
     * @param model 페이지모델
     * @return ocrSampleList 화면
     * @see ocrTestApplication.java
