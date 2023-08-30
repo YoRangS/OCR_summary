@@ -52,8 +52,9 @@ import com.theokanning.openai.service.OpenAiService;
         )
 public class OcrRestController {
     /** 이미지 업로드 디렉토리 */
-    public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
-
+    //public static final String UPLOAD_DIR = "C:/Users/JEC/eclipse-workspace/ocr/src/main/java/saveImage/";
+	public static final String UPLOAD_DIR = "C:/Users/Admin/git/OCR_summary/src/main/java/saveImage/";
+	
     @GetMapping("/{name}")
     public String sayHello(@PathVariable String name) {
         String result="Hello eGovFramework!! name : " + name;  
@@ -69,7 +70,7 @@ public class OcrRestController {
     * @see ocrTestApplication.java
     * @see useGPT
     */
-    @PostMapping("/tesseract")
+    @PostMapping("/tess_sum")
     public ResponseEntity<?> test(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
         //MultipartFile file = (MultipartFile) input.get("file");
         //String language = (String) input.get("language");
@@ -86,6 +87,7 @@ public class OcrRestController {
         String prompt = ""; // ChatGPT에게 보낼 명령어
         String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
         String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+        String summaryText = ""; // 요약 텍스트
         String fileName = file.getOriginalFilename(); // 파일의 이름
         
         result = OcrTestApplication.OcrTest(file.getOriginalFilename(), language); 
@@ -93,11 +95,14 @@ public class OcrRestController {
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
         preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
+        summaryText = summary(preprocessingResult, language);
         // 리턴값으로 돌려줄 파일이름, 언어, 오타수정 결과 텍스트
         Map<String, String> response = new HashMap<>();
         response.put("fileName", fileName);
         response.put("language", language);
+        response.put("rawText", result);
         response.put("preprocessingResult", preprocessingResult);
+        response.put("summary", summaryText);
         
         if (fullPath != null) { // remove temporary file
             File doDelete = new File(fullPath);
@@ -109,27 +114,22 @@ public class OcrRestController {
         return ResponseEntity.ok(response);
     }
     /**
-     * summary이름의 POST 타입 호출을 받아 텍스트 요약
+     * 요약이 필요한 텍스트와 언어를 받아 요약 결과 출력
      * @param text 요약을 위해 받는 텍스트
      * @param lang 텍스트 요약에 사용할 언어
      * @return 요약텍스트를 가진 response 해시맵
      * @see Prompts.java
      * @see useGPT
      */
-    @PostMapping("/summary")
-    public ResponseEntity<?> summary(@RequestParam("text") String text,@RequestParam("language") String language) {
+    public String summary(String text, String language) {
         String prompt = "SUMMARY_" + language.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
         String summaryText = ""; // 요약 텍스트를 보관
         
         summaryText = useGPT(Prompts.getPrompt(prompt), text);
         summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
         summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
-        
-     // 리턴값으로 돌려줄 요약텍스트
-        Map<String, String> response = new HashMap<>();
-        response.put("summaryText", summaryText);
 
-        return ResponseEntity.ok(response);
+        return summaryText;
     }
     
     /**
