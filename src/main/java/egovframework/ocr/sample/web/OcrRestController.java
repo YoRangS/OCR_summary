@@ -1,7 +1,6 @@
 package egovframework.ocr.sample.web;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -9,18 +8,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +30,7 @@ import com.theokanning.openai.service.OpenAiService;
 * @version 0.15
 * @see ocrSampleList.jsp
 * @see ocrSummary.jsp
-* @see OcrTestApplication.java
+* @see OcrTesseract.java
 * 
 * == 개정이력(Modification Information) ==
 * 수정 내용
@@ -60,9 +54,9 @@ public class OcrRestController {
         return result;
     }
     /**
-    * test.do이름의 POST 타입 호출을 받아 텍스트 추출
+    * tess_sum이름의 POST 타입 호출을 받아 텍스트 추출 및 요약
     * @param file 이미지/pdf 폴더
-    * @param lang 오타수정에 사용할 언어
+    * @param language 오타수정에 사용할 언어
     * @return 파일 이름, 언어, 오타수정 요청을 거친 텍스트를 보관한 response 해시맵
     * @throws IOException 
     * @throws IllegalStateException 
@@ -70,7 +64,7 @@ public class OcrRestController {
     * @see useGPT
     */
     @PostMapping("/tess_sum")
-    public ResponseEntity<?> test(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
+    public ResponseEntity<?> tess(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
         //MultipartFile file = (MultipartFile) input.get("file");
         //String language = (String) input.get("language");
         
@@ -89,7 +83,7 @@ public class OcrRestController {
         String summaryText = ""; // 요약 텍스트
         String fileName = file.getOriginalFilename(); // 파일의 이름
         
-        result = OcrTestApplication.OcrTest(file.getOriginalFilename(), language); 
+        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language); 
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
@@ -132,7 +126,7 @@ public class OcrRestController {
     }
     
     /**
-     * data.do이름의 POST 타입 호출을 받아 텍스트를 지정경로에 텍스트 파일로 저장
+     * OpenAI의 AI 모델을 사용하기 위한 연결과 인풋 텍스트와 명령을 기반으로 결과 출력
      * @param prompt ChatGPT에게 명령을 주기위한 명령 텍스트
      * @param content ChatGPT에게 보낼 텍스트
      * @see Prompts.java

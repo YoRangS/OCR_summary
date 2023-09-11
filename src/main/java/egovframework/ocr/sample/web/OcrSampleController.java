@@ -28,7 +28,7 @@ import com.theokanning.openai.service.OpenAiService;
 * @version 0.15
 * @see ocrSampleList.jsp
 * @see ocrSummary.jsp
-* @see OcrTestApplication.java
+* @see OcrTesseract.java
 * 
 * == 개정이력(Modification Information) ==
 * 수정 내용
@@ -45,7 +45,7 @@ public class OcrSampleController {
     /** 이미지 업로드 디렉토리 */
 	public static final String UPLOAD_DIR = KeyValue.uploadDir;
 	
-    @RequestMapping(value = "/test.do", method = RequestMethod.GET)
+    @RequestMapping(value = "/tess.do", method = RequestMethod.GET)
     public String test(){
         return "ocr/ocrSampleList";
     }
@@ -58,8 +58,8 @@ public class OcrSampleController {
     * @see ocrTestApplication.java
     * @see useGPT
     */
-    @RequestMapping(value = "/test.do", method = RequestMethod.POST)
-    public String test(@RequestParam MultipartFile file, String language, Model model) throws IOException, ServletException {
+    @RequestMapping(value = "/tess.do", method = RequestMethod.POST)
+    public String tess(@RequestParam MultipartFile file, String language, Model model) throws IOException, ServletException {
         
         
         String fullPath = null; // path to upload image file
@@ -76,7 +76,7 @@ public class OcrSampleController {
         String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
         String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
         
-        result = OcrTestApplication.OcrTest(file.getOriginalFilename(), language);
+        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language);
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
@@ -173,7 +173,7 @@ public class OcrSampleController {
     }
     
     /**
-     * data.do이름의 POST 타입 호출을 받아 텍스트를 지정경로에 텍스트 파일로 저장
+     * OpenAI의 AI 모델을 사용하기 위한 연결과 인풋 텍스트와 명령을 기반으로 결과 출력
      * @param prompt ChatGPT에게 명령을 주기위한 명령 텍스트
      * @param content ChatGPT에게 보낼 텍스트
      * @see Prompts.java
