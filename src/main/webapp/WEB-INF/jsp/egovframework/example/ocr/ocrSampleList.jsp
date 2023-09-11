@@ -18,7 +18,7 @@
 <body>
 	<div id="main">
 		<section>
-			<form action="/test.do" method="POST" enctype="multipart/form-data">
+			<form action="/tess.do" method="POST" enctype="multipart/form-data">
 				<fieldset>
 					<legend>입력</legend>
 					<label for="language">텍스트 추출에 사용할 언어를 선택해주세요:</label> <select
