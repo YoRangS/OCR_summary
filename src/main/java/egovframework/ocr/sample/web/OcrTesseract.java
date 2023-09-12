@@ -7,8 +7,8 @@ import org.springframework.stereotype.Component;
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
 
-@Component("OcrTest")
-public class OcrTestApplication {
+@Component("OcrTess")
+public class OcrTesseract {
 
 	private static String showText(Tesseract tesseract, String imagelocation, String language) {
 		tesseract.setLanguage(language);
@@ -29,7 +29,7 @@ public class OcrTestApplication {
 		}
 	}
 	
-	 public static String OcrTest(String imgName, String lang) {
+	 public static String ocrTess(String imgName, String lang) {
 	     Tesseract tesseract = new Tesseract();  // JNA Interface Mapping
 	     tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
 
