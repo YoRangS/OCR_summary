@@ -130,6 +130,28 @@ public class OcrSampleController {
 
         return "ocr/ocrSummary";
     }
+    
+    /**
+     * vision.do이름의 POST 타입 호출을 받아 텍스트 요약
+     * @param scanResult 추출하여 오타수정을 거친 텍스트
+     * @param lang 텍스트 요약에 사용할 언어
+     * @param model 페이지모델
+     * @return ocrTag 화면
+     * @see Prompts.java
+     * @see useGPT
+     */
+    @RequestMapping(value = "/vision.do", method = RequestMethod.POST)
+    public String vision(@RequestParam String scanResult, String lang, Model model) {
+        String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+        String jsonTag = ""; // json 형식의 요약 태그를 보관
+        
+        jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
+        
+        /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
+        model.addAttribute("jsonTag", jsonTag);
+
+        return "ocr/ocrTag";
+    }
 
     /**
      * data.do이름의 POST 타입 호출을 받아 텍스트를 지정경로에 텍스트 파일로 저장

@@ -17,15 +17,19 @@ public class Prompts {
     /*ChatGPT에 사용될 명령어들*/
     private static String SUMMARY_ENG = "Summarize the text in maximum 5 lines.";
     private static String FIX_TYPO_ENG = "Fix the typo in the text if there are any.";
+    private static String TAG_ENG = "";
     private static String SUMMARY_KOR = "해당 글을 5줄 이내로 요약해줘. 엔터키도 적당히 섞어줘.";
     private static String FIX_TYPO_KOR = "해당 글에 오타가 있을경우 수정해서 출력해줘.";
+    private static String TAG_KOR = "";
 
     private static HashMap<String, String> promptMap = new HashMap<>(); // 명령어들을 모이기 위한 해시맵
     static { // 해시맵에 명령어들 추가
         promptMap.put("SUMMARY_ENG", SUMMARY_ENG);
         promptMap.put("FIX_TYPO_ENG", FIX_TYPO_ENG);
+        promptMap.put("TAG_ENG", TAG_ENG);
         promptMap.put("SUMMARY_KOR", SUMMARY_KOR);
         promptMap.put("FIX_TYPO_KOR", FIX_TYPO_KOR);
+        promptMap.put("TAG_KOR", TAG_KOR);
     }
 
     public static String getPrompt(String key) { //key값과 동일한 명령어 반환
