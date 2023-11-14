@@ -1,11 +1,95 @@
 <?xml version="1.0" encoding="UTF-8"?><project-modules id="moduleCoreId" project-version="1.5.0">
+<<<<<<< HEAD
+                                
+=======
+                                    
+    
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+    
+    
+    
+    
+    
+    
     <wb-module deploy-name="ocr_frame-1.0.0">
+<<<<<<< HEAD
+                                                                
+=======
+                                                                        
+        
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+        
+        
+        
+        
+        
+        
         <wb-resource deploy-path="/" source-path="/target/m2e-wtp/web-resources"/>
+<<<<<<< HEAD
+                                                                
+=======
+                                                                        
+        
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+        
+        
+        
+        
+        
+        
         <wb-resource deploy-path="/" source-path="/src/main/webapp" tag="defaultRootSource"/>
+<<<<<<< HEAD
+                                                                
+=======
+                                                                        
+        
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+        
+        
+        
+        
+        
+        
         <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/java"/>
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/main/resources"/>
-        <wb-resource deploy-path="/WEB-INF/classes" source-path="/target/generated-sources/annotations"/>
+<<<<<<< HEAD
+        <wb-resource deploy-path="/WEB-INF/classes" source-path="/src/test/resources"/>
+                                                                
+=======
+                                                                        
+        
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+        
+        
+        
+        
+        
+        
+        <property name="java-output-path" value="/ocr_frame/target/classes"/>
+<<<<<<< HEAD
         <property name="context-root" value="ocr_frame"/>
-        <property name="java-output-path" value="/OCR_summary/target/classes"/>
+                                                            
+=======
+        <property name="context-root" value="/"/>
+                                                                    
+    
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+    
+    
+    
+    
+    
+    
     </wb-module>
+<<<<<<< HEAD
+                            
+=======
+                                
+
+>>>>>>> d9389e6cd61bab682a8763b9c80529c11cadfaab
+
+
+
+
+
+
 </project-modules>
