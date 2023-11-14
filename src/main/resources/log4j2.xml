@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="OFF">
+
+    <Appenders>
+    	<Console name="console" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d %5p [%c] %m%n" />
+        </Console>
+    </Appenders>
+    
+    <Loggers>
+        <Logger name="java.sql" additivity="false">
+            <AppenderRef ref="console" level="debug"/>
+        </Logger>
+        <Logger name="egovframework" additivity="false">
+            <AppenderRef ref="console" level="debug"/>
+            
+        </Logger>
+		  <!-- log SQL with timing information, post execution -->
+	    <Logger name="jdbc.sqltiming" additivity="false">
+	        <AppenderRef ref="console" level="debug"/>
+	    </Logger>
+	    <Logger name="org.springframework" additivity="false">
+	        <AppenderRef ref="console" level="debug"/>
+	    </Logger> 
+	    
+	    <Logger name="com.hs.rms.common.util.CmnMappingExcetion" additivity="false">
+	        <AppenderRef ref="console" level="debug"/>
+	    </Logger> 
+
+	    <Root level="debug" additivity="false">
+	       <AppenderRef ref="console" level="debug"/>
+        </Root>
+    </Loggers>
+</Configuration>
+    
