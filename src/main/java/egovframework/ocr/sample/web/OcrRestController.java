@@ -126,6 +126,34 @@ public class OcrRestController {
     }
     
     /**
+     * tess_sum이름의 POST 타입 호출을 받아 텍스트 추출 및 요약
+     * @param file 이미지/pdf 폴더
+     * @param language 오타수정에 사용할 언어
+     * @return 파일 이름, 언어, 오타수정 요청을 거친 텍스트를 보관한 response 해시맵
+     * @throws IOException 
+     * @throws IllegalStateException 
+     * @see ocrTestApplication.java
+     * @see useGPT
+     */
+     @PostMapping("/tag")
+     public ResponseEntity<?> vision(@RequestParam("scanResult") String scanResult, @RequestParam("language") String language) throws IllegalStateException, IOException {
+    	 String prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+         String jsonTag = ""; // json 형식의 요약 태그를 보관
+         
+         System.out.println("[rest] prompt: " + prompt);
+         System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+         System.out.println("[rest] scanResult: " + scanResult);
+         
+         jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
+         
+         Map<String, String> response = new HashMap<>();
+         response.put("jsonTag", jsonTag);
+         
+         return ResponseEntity.ok(response);
+     }
+    
+    
+    /**
      * OpenAI의 AI 모델을 사용하기 위한 연결과 인풋 텍스트와 명령을 기반으로 결과 출력
      * @param prompt ChatGPT에게 명령을 주기위한 명령 텍스트
      * @param content ChatGPT에게 보낼 텍스트

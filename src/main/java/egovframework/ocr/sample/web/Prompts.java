@@ -17,10 +17,12 @@ public class Prompts {
     /*ChatGPT에 사용될 명령어들*/
     private static String SUMMARY_ENG = "Summarize the text in maximum 5 lines.";
     private static String FIX_TYPO_ENG = "Fix the typo in the text if there are any.";
-    private static String TAG_ENG = "";
+    private static String TAG_ENG = "The following is the text we want to get the tags for."
+    		+ "From the text extract the keywords and their frequency and show them in the form of json format {Example: 3} without other explanation.";
     private static String SUMMARY_KOR = "해당 글을 5줄 이내로 요약해줘. 엔터키도 적당히 섞어줘.";
     private static String FIX_TYPO_KOR = "해당 글에 오타가 있을경우 수정해서 출력해줘.";
-    private static String TAG_KOR = "";
+    private static String TAG_KOR = "다음 문장은 주요 태그를 추출하려고 하는 텍스트 전문입니다."
+    		+ "아래 텍스트에서 중요한 키워드와 빈도수를 같이 추출한 뒤 다른 설명 없이 {단어: 3} 와 같이 json 형식으로만 보여주세요.";
 
     private static HashMap<String, String> promptMap = new HashMap<>(); // 명령어들을 모이기 위한 해시맵
     static { // 해시맵에 명령어들 추가

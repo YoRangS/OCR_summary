@@ -56,12 +56,12 @@
 				<legend>스캔 결과</legend>
 				<p>스캔한 파일: ${fileName}</p>
 				<fieldset>
-					<legend>오타수정 요청전</legend>
+					<legend>오타수정 요청 전</legend>
 					<textarea cols="150" rows="20">${scan}</textarea>
 				</fieldset>
-				<form action="/summary.do" method="POST">
-					<fieldset>
-						<legend>오타수정 요청 후</legend>
+				<fieldset>
+					<form action="/summary.do" method="POST">
+						<legend>오타수정 요청 후!!!</legend>
 						<p>
 							스캔한 파일: <input type="text" id="fileName" name="fileName"
 								value=${fileName}>
@@ -71,9 +71,16 @@
 						<p>
 							<textarea id="sr" name="scanResult" cols="150" rows="20">${result}</textarea>
 							<br>
-					</fieldset>
 					<input type="submit" value="요약하기" />
-				</form>
+					</form><br>
+					<form action="/tag.do" method="POST">
+						<!-- <input type="text" name="scanResult" style="display:none;" value=${result} /> -->
+						<%-- <p name="scanResult" style="display:none;">${result}</p> --%>
+						<textarea id="sr" name="scanResult" cols="150" rows="20" style="display:none;">${result}</textarea>
+						<input type="text" name="lang" style="display:none;" value=${lang} />
+						<input type="submit" value="태그 추출하기" />
+					</form>
+				</fieldset>
 			</fieldset>
 		</section>
 	</div>

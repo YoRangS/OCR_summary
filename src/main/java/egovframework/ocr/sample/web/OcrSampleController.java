@@ -50,7 +50,7 @@ public class OcrSampleController {
         return "ocr/ocrSampleList";
     }
     /**
-    * test.do이름의 POST 타입 호출을 받아 텍스트 추출
+    * tess.do이름의 POST 타입 호출을 받아 텍스트 추출
     * @param file 이미지/pdf 폴더
     * @param lang 오타수정에 사용할 언어
     * @param model 페이지모델
@@ -119,7 +119,7 @@ public class OcrSampleController {
         } else {
             System.out.println("파일에 . 이 존재하지 않습니다");
         }
-        
+        System.out.println("scanResult: " + scanResult);
         summaryText = useGPT(Prompts.getPrompt(prompt), scanResult);
         summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
         summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
@@ -132,7 +132,7 @@ public class OcrSampleController {
     }
     
     /**
-     * vision.do이름의 POST 타입 호출을 받아 텍스트 요약
+     * tag.do이름의 POST 타입 호출을 받아 텍스트 요약
      * @param scanResult 추출하여 오타수정을 거친 텍스트
      * @param lang 텍스트 요약에 사용할 언어
      * @param model 페이지모델
@@ -140,10 +140,14 @@ public class OcrSampleController {
      * @see Prompts.java
      * @see useGPT
      */
-    @RequestMapping(value = "/vision.do", method = RequestMethod.POST)
+    @RequestMapping(value = "/tag.do", method = RequestMethod.POST)
     public String vision(@RequestParam String scanResult, String lang, Model model) {
         String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
         String jsonTag = ""; // json 형식의 요약 태그를 보관
+        
+        System.out.println("prompt: " + prompt);
+        System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("scanResult: " + scanResult);
         
         jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
         
