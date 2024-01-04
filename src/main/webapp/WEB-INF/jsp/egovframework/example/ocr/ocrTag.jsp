@@ -19,31 +19,38 @@
 	<div id="main">
 		<fieldset>
 			<legend>태그 추출 결과</legend>
-			<form action="/vision.do" method="POST">
-				<textarea id="jsonTag" name="jsonTag" cols="150" rows="20">${jsonTag}</textarea>
+			<form action="/purpose.do" method="POST">
+				 언어: <input type="text" id="lang" name="lang" value=${lang}>
+				<p>kor = 한글, eng = 영어
+				원본 텍스트<br>
+				<textarea id="sr" name="scanResult" cols="150" rows="20">${result}</textarea>
+				<br>태그<br>
+				<textarea id="jsonTag" name="jsonTag" cols="150" rows="10">${jsonTag}</textarea>
 				<br>
 				<button type="submit">의도 추출하기</button>
 			</form>
+			<textarea id="pur" name="purpose" cols="150" rows="5">${purpose}</textarea>
+			<br>
 			<button onclick="getTagCloud()">textCloud</button>
 			<button type="button" onclick="history.back()">뒤로가기</button>
 		</fieldset>
 	</div>
 	<%-- <p id="json" style="display:none;">jsonTag : ${jsonTag}</p> --%>
 	<p id="json" style="display:none;">${jsonTag}</p>
-	<div id="container" style="width: 600px; height: 400px;"></div>
-	<script>
-		function getTagCloud() {
-			var jsonString = document.getElementById("json").textContent;
-			console.log(jsonString);
-			const jsonObject = JSON.parse(jsonString);
-			const data = Object.entries(jsonObject).map(([key, value]) => {
-			    return { x: key, value: value };
-			});
-			console.log(data);
-			chart = anychart.tagCloud(data);
-			chart.container("container");
-			chart.draw();
-		}
-	</script>
+	<div id="container" style="width: 600px; height: 400px; border: 1px solid #333;"></div>
 </body>
+<script>
+	function getTagCloud() {
+		var jsonString = document.getElementById("json").textContent;
+		console.log(jsonString);
+		const jsonObject = JSON.parse(jsonString);
+		const data = Object.entries(jsonObject).map(([key, value]) => {
+		    return { x: key, value: value };
+		});
+		console.log(data);
+		chart = anychart.tagCloud(data);
+		chart.container("container");
+		chart.draw();
+	}
+</script>
 </html>
