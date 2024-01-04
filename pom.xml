@@ -226,6 +226,13 @@
 		    <artifactId>service</artifactId>
 		    <version>0.14.0</version>       
 		</dependency>
+		
+		<!-- TextCloud Java Library -->
+		<dependency>
+		    <groupId>com.kennycason</groupId>
+		    <artifactId>kumo-core</artifactId>
+		    <version>1.28</version>
+		</dependency>
 	</dependencies>
 
 	<build>
