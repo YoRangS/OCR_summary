@@ -16,7 +16,7 @@ import java.util.HashMap;
 public class Prompts {
     /*ChatGPT에 사용될 명령어들*/
     private static String SUMMARY_ENG = "Summarize the text in maximum 5 lines.";
-    private static String FIX_TYPO_ENG = "Fix the typo in the text if there are any.";
+    private static String FIX_TYPO_ENG = "Fix the typo in the text if there are any and then show the text regardless of typo.";
     private static String TAG_ENG = "The following is the text we want to get the tags for."
     		+ "From the text extract the keywords and their frequency and show them in the form of json format {Example: 3} without other explanation.";
     private static String SUMMARY_KOR = "해당 글을 5줄 이내로 요약해줘. 엔터키도 적당히 섞어줘.";
