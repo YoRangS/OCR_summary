@@ -157,96 +157,41 @@ public class OcrRestController {
          
          jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
          
-         final List<WordFrequency> wordFrequencies = JsonTagToWordFrequency(jsonTag);
-         
-         for (WordFrequency wordFrequency : wordFrequencies) {
-             System.out.println("Word: " + wordFrequency.getWord() + ", Frequency: " + wordFrequency.getFrequency());
-         }
-         
-         Date date = new Date();
-         SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
-         String fileDate = sdf.format(date);
-         String filePath = UPLOAD_DIR + "/" + fileDate + "_" + UUID.randomUUID().toString() + ".png";
-         
-         final Dimension dimension = new Dimension(600, 600);
-         final WordCloud wordCloud = new WordCloud(dimension, CollisionMode.PIXEL_PERFECT);
-         wordCloud.setPadding(2);
-         wordCloud.setBackground(new CircleBackground(300));
-         wordCloud.setColorPalette(new ColorPalette(new Color(0x4055F1), new Color(0x408DF1), new Color(0x40AAF1), new Color(0x40C5F1), new Color(0x40D3F1), new Color(0xFFFFFF)));
-         wordCloud.setFontScalar(new SqrtFontScalar(10, 40));
-         wordCloud.build(wordFrequencies);
-         wordCloud.writeToFile(filePath);
-         
          Map<String, String> response = new HashMap<>();
          response.put("jsonTag", jsonTag);
-         response.put("filePath", filePath);
+         response.put("imgLink", convertToLink(jsonTag));
          
          return ResponseEntity.ok(response);
      }
      
-     private List<WordFrequency> JsonTagToWordFrequency(String jsonTag) {
-    	 List<WordFrequency> wordFrequencyList = new ArrayList<>();
-    	 String trimmedJsonTag = jsonTag.substring(1, jsonTag.length() - 1);
-    	 
-    	 String[] parts = trimmedJsonTag.split(",");
-         for (String part : parts) {
-             String[] keyValue = part.split(":");
-             if (keyValue.length == 2) {
-                 String word = keyValue[0].trim().replace("\"", "");
-                 int frequency = Integer.parseInt(keyValue[1].trim());
-                 wordFrequencyList.add(new WordFrequency(word, frequency));
-             }
+     private static String convertToLink(String jsonString) {
+         // JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
+         String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
+
+         // 원하는 형식의 문자열로 변환
+         StringBuilder queryString = new StringBuilder();
+
+         for (String pair : keyValuePairs) {
+             // 각 키-값 쌍을 콜론을 기준으로 나누기
+             String[] entry = pair.split(":");
+
+             // 특수 문자 처리를 위해 key를 변환
+             String key = entry[0].trim().replace("\"", "").replace(" ", "%20").replace("_", "%5F");
+
+             // 쿼리 스트링에 추가
+             queryString.append(key)
+                     .append(":")
+                     .append(entry[1].trim())
+                     .append(",");
          }
-         
-         return wordFrequencyList;
+
+         // 마지막 쉼표 제거
+         if (queryString.length() > 0) {
+             queryString.deleteCharAt(queryString.length() - 1);
+         }
+
+         return "https://quickchart.io/wordcloud?text=" + queryString.toString() + "&useWordList=true";
      }
-     
-//     public String generateTextCloud(String jsonTag, Model model) {
-//    	 model.addAttribute("jsonTag", jsonTag);
-//         
-//    	 return "ocr/ocrTextCloud";
-//     }
-     
-//     final String tag = jsonTag;
-//     
-//     // CompletableFuture를 사용하여 generateImgFile 함수를 비동기로 실행
-//     CompletableFuture<Void> imgFileFuture = CompletableFuture.runAsync(() -> {
-//         try {
-//             generateTextCloud(tag);
-//         } catch (Exception e) {
-//             // 예외 처리 필요
-//             e.printStackTrace();
-//         }
-//     });
-//
-//     // CompletableFuture가 완료될 때까지 대기
-//     imgFileFuture.join();
-     
-//     public String generateImageFromJsonTag(String jsonTag) throws ServletException, IOException {
-//    	 HttpServletRequest request;
-//    	 HttpServletResponse response;
-//         // 1. jsonTag라는 String 값을 Parameter로 jsp파일에 전달한다.
-//         request.setAttribute("jsonTag", jsonTag);
-//         request.getRequestDispatcher("example.jsp").forward(request, response);
-//
-//         // 2. jsp파일에서 jsonTag라는 String값과 js라이브러리를 통해 div id="container"에 이미지를 생성한다.
-//         // 이 부분은 JSP 파일에서 구현하시면 됩니다.
-//
-//         // 3. jsp파일에서 생성된 이미지를 URL형식으로 java에 다시 전달한다.
-//         String imageUrl = (String) request.getAttribute("imageUrl");
-//
-//         // 4. jsp파일에서 전달한 URL을 바탕으로 이미지 파일로 변환한다.
-//         String base64Image = imageUrl.split(",")[1]; // Base64 형식의 이미지 데이터 추출
-//
-//         byte[] imageBytes = Base64.getDecoder().decode(base64Image);
-//         String imagePath = "path/to/save/image.png"; // 이미지 파일을 저장할 경로 및 파일명 설정
-//
-//         try (OutputStream outputStream = new FileOutputStream(imagePath)) {
-//             outputStream.write(imageBytes);
-//         }
-//
-//         return imagePath;
-//     }
     
     
     /**
