@@ -131,31 +131,6 @@ public class OcrSampleController {
         return "ocr/ocrSummary";
     }
     
-    /**
-     * tag.do이름의 POST 타입 호출을 받아 텍스트 요약
-     * @param scanResult 추출하여 오타수정을 거친 텍스트
-     * @param lang 텍스트 요약에 사용할 언어
-     * @param model 페이지모델
-     * @return ocrTag 화면
-     * @see Prompts.java
-     * @see useGPT
-     */
-    @RequestMapping(value = "/tag.do", method = RequestMethod.POST)
-    public String vision(@RequestParam String scanResult, String lang, Model model) {
-        String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
-        String jsonTag = ""; // json 형식의 요약 태그를 보관
-        
-        System.out.println("prompt: " + prompt);
-        System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
-        System.out.println("scanResult: " + scanResult);
-        
-        jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
-        
-        /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
-        model.addAttribute("jsonTag", jsonTag);
-
-        return "ocr/ocrTag";
-    }
 
     /**
      * data.do이름의 POST 타입 호출을 받아 텍스트를 지정경로에 텍스트 파일로 저장
@@ -196,6 +171,78 @@ public class OcrSampleController {
         model.addAttribute("location", location);
 
         return "ocr/ocrSummary";
+    }
+    
+    /**
+     * tag.do이름의 POST 타입 호출을 받아 태그 생성
+     * @param scanResult 추출하여 오타수정을 거친 텍스트
+     * @param lang 텍스트 요약에 사용할 언어
+     * @param model 페이지모델
+     * @return ocrTag 화면
+     * @see Prompts.java
+     * @see useGPT
+     */
+    @RequestMapping(value = "/tag.do", method = RequestMethod.POST)
+    public String vision(@RequestParam String scanResult, String lang, Model model) {
+        String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+        String jsonTag = ""; // json 형식의 요약 태그를 보관
+        
+        System.out.println("prompt: " + prompt);
+        System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("scanResult: " + scanResult);
+        
+        jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
+        
+        /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
+        model.addAttribute("result", scanResult);
+        model.addAttribute("lang", lang);
+        model.addAttribute("jsonTag", jsonTag);
+        
+        
+        return "ocr/ocrTag";
+    }
+    
+    /**
+     * purpose.do이름의 POST 타입 호출을 받아 태그 기반의 텍스트의 의도 추출
+     * @param scanResult 추출하여 오타수정을 거친 텍스트
+     * @param lang 텍스트 요약에 사용할 언어
+     * @param jsonTag 텍스트로 부터 만들어진 태그
+     * @param model 페이지모델
+     * @return ocrTag 화면
+     * @see Prompts.java
+     * @see useGPT
+     */
+    @RequestMapping(value = "/purpose.do", method = RequestMethod.POST)
+    public String purpose(@RequestParam String scanResult, String lang, String jsonTag, Model model) {
+        String prompt = "TOP_TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+        String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
+        String purpose = ""; // 태그를 기반으로 한 텍스트의 의도 추출
+        String tagAndText = "";
+        
+        System.out.println("prompt: " + prompt);
+        System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("tags: " + jsonTag);
+        
+        topTags = useGPT(Prompts.getPrompt(prompt), jsonTag);
+        
+        prompt = "PUR_" + lang.toUpperCase();
+        tagAndText = topTags + "\n" + scanResult;
+        
+        System.out.println("prompt: " + prompt);
+        System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("Top 5 tags: " + topTags);
+        System.out.println("Tag and Text: " + tagAndText);
+        
+        purpose = useGPT(Prompts.getPrompt(prompt), tagAndText);
+        
+        /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
+        model.addAttribute("result", scanResult);
+        model.addAttribute("lang", lang);
+        model.addAttribute("jsonTag", jsonTag);
+        model.addAttribute("purpose", purpose);
+        
+        
+        return "ocr/ocrTag";
     }
     
     /**
