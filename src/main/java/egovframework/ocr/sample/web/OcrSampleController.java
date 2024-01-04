@@ -56,7 +56,7 @@ public class OcrSampleController {
     * @param model 페이지모델
     * @return ocrSampleList 화면
     * @see ocrTestApplication.java
-    * @see useGPT
+    * @see UseGPT.useGPT
     */
     @RequestMapping(value = "/tess.do", method = RequestMethod.POST)
     public String tess(@RequestParam MultipartFile file, String language, Model model) throws IOException, ServletException {
@@ -79,7 +79,7 @@ public class OcrSampleController {
         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language);
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-        preprocessingResult = useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+        preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
         fileName = file.getOriginalFilename().replaceAll(" ", "_"); //replace all spaces with _ to prevent file name being lost
         /*Saves results to webpage model*/
         model.addAttribute("scan", result);
@@ -105,7 +105,7 @@ public class OcrSampleController {
      * @param model 페이지모델
      * @return ocrSummary 화면
      * @see Prompts.java
-     * @see useGPT
+     * @see UseGPT.useGPT
      */
     @RequestMapping(value = "/summary.do", method = RequestMethod.POST)
     public String summary(@RequestParam String scanResult, String fileName, String lang, Model model) {
@@ -120,7 +120,7 @@ public class OcrSampleController {
             System.out.println("파일에 . 이 존재하지 않습니다");
         }
         System.out.println("scanResult: " + scanResult);
-        summaryText = useGPT(Prompts.getPrompt(prompt), scanResult);
+        summaryText = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
         summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
         summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
         
@@ -180,7 +180,7 @@ public class OcrSampleController {
      * @param model 페이지모델
      * @return ocrTag 화면
      * @see Prompts.java
-     * @see useGPT
+     * @see UseGPT.useGPT
      */
     @RequestMapping(value = "/tag.do", method = RequestMethod.POST)
     public String vision(@RequestParam String scanResult, String lang, Model model) {
@@ -191,7 +191,7 @@ public class OcrSampleController {
         System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
         System.out.println("scanResult: " + scanResult);
         
-        jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
+        jsonTag = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
         
         /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
         model.addAttribute("result", scanResult);
@@ -210,7 +210,7 @@ public class OcrSampleController {
      * @param model 페이지모델
      * @return ocrTag 화면
      * @see Prompts.java
-     * @see useGPT
+     * @see UseGPT.useGPT
      */
     @RequestMapping(value = "/purpose.do", method = RequestMethod.POST)
     public String purpose(@RequestParam String scanResult, String lang, String jsonTag, Model model) {
@@ -223,7 +223,7 @@ public class OcrSampleController {
         System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
         System.out.println("tags: " + jsonTag);
         
-        topTags = useGPT(Prompts.getPrompt(prompt), jsonTag);
+        topTags = UseGPT.useGPT(Prompts.getPrompt(prompt), jsonTag);
         
         prompt = "PUR_" + lang.toUpperCase();
         tagAndText = topTags + "\n" + scanResult;
@@ -233,7 +233,7 @@ public class OcrSampleController {
         System.out.println("Top 5 tags: " + topTags);
         System.out.println("Tag and Text: " + tagAndText);
         
-        purpose = useGPT(Prompts.getPrompt(prompt), tagAndText);
+        purpose = UseGPT.useGPT(Prompts.getPrompt(prompt), tagAndText);
         
         /*결과들을 웹페이지 모델에 요소들로 추가해줌*/
         model.addAttribute("result", scanResult);
@@ -243,32 +243,5 @@ public class OcrSampleController {
         
         
         return "ocr/ocrTag";
-    }
-    
-    /**
-     * OpenAI의 AI 모델을 사용하기 위한 연결과 인풋 텍스트와 명령을 기반으로 결과 출력
-     * @param prompt ChatGPT에게 명령을 주기위한 명령 텍스트
-     * @param content ChatGPT에게 보낼 텍스트
-     * @see Prompts.java
-     * @see Keys.java
-     * @return ChatGPT를 통해 생성된 텍스트
-     */
-    public String useGPT(String prompt, String content) {
-        Keys keysInstance = Keys.getInstance(); // OpenAI API 활용을 위한 키 인스턴스
-        String gptKey = keysInstance.getGptKey(); // 인스턴스의 키값
-        OpenAiService service = new OpenAiService(gptKey,Duration.ofMinutes(9999)); // OpenAI 서비스 연결
-
-        List<ChatMessage> message = new ArrayList<ChatMessage>(); // GPT에게 보낼 메세지 어레이
-        message.add(new ChatMessage("user", prompt));
-        message.add(new ChatMessage("user", content));
-        ChatCompletionRequest completionRequest = ChatCompletionRequest.builder() // OpenAI의 모델 선택하여 메세지 전달후 결과 텍스트 받기
-                .messages(message)
-                .model("gpt-3.5-turbo") // 터보 모델 사용
-                .maxTokens(1000)
-                .temperature((double) 1.0f) // 답변의 자유도 설정
-                .build();
-
-        return service.createChatCompletion(completionRequest).getChoices().get(0)
-                .getMessage().getContent();
     }
 }

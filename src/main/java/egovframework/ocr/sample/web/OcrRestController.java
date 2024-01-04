@@ -72,7 +72,7 @@ public class OcrRestController {
     * @throws IOException 
     * @throws IllegalStateException 
     * @see ocrTestApplication.java
-    * @see useGPT
+    * @see UseGPT.useGPT
     */
     @PostMapping("/tess_sum")
     public ResponseEntity<?> tess(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
@@ -97,7 +97,7 @@ public class OcrRestController {
         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language); 
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-        preprocessingResult = useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+        preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
         preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
         summaryText = summary(preprocessingResult, language);
         // 리턴값으로 돌려줄 파일이름, 언어, 오타수정 결과 텍스트
@@ -123,13 +123,13 @@ public class OcrRestController {
      * @param lang 텍스트 요약에 사용할 언어
      * @return 요약텍스트를 가진 response 해시맵
      * @see Prompts.java
-     * @see useGPT
+     * @see UseGPT.useGPT
      */
     public String summary(String text, String language) {
         String prompt = "SUMMARY_" + language.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
         String summaryText = ""; // 요약 텍스트를 보관
         
-        summaryText = useGPT(Prompts.getPrompt(prompt), text);
+        summaryText = UseGPT.useGPT(Prompts.getPrompt(prompt), text);
         summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
         summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
 
@@ -144,7 +144,7 @@ public class OcrRestController {
      * @throws IOException 
      * @throws IllegalStateException 
      * @see ocrTestApplication.java
-     * @see useGPT
+     * @see UseGPT.useGPT
      */
      @PostMapping("/tag")
      public ResponseEntity<?> vision(@RequestParam("scanResult") String scanResult, @RequestParam("language") String language) throws IllegalStateException, IOException {
@@ -155,7 +155,7 @@ public class OcrRestController {
          System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
          System.out.println("[rest] scanResult: " + scanResult);
          
-         jsonTag = useGPT(Prompts.getPrompt(prompt), scanResult);
+         jsonTag = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
          
          Map<String, String> response = new HashMap<>();
          response.put("jsonTag", jsonTag);
@@ -194,30 +194,4 @@ public class OcrRestController {
      }
     
     
-    /**
-     * OpenAI의 AI 모델을 사용하기 위한 연결과 인풋 텍스트와 명령을 기반으로 결과 출력
-     * @param prompt ChatGPT에게 명령을 주기위한 명령 텍스트
-     * @param content ChatGPT에게 보낼 텍스트
-     * @see Prompts.java
-     * @see Keys.java
-     * @return ChatGPT를 통해 생성된 텍스트
-     */
-    public String useGPT(String prompt, String content) {
-        Keys keysInstance = Keys.getInstance(); // OpenAI API 활용을 위한 키 인스턴스
-        String gptKey = keysInstance.getGptKey(); // 인스턴스의 키값
-        OpenAiService service = new OpenAiService(gptKey,Duration.ofMinutes(9999)); // OpenAI 서비스 연결
-
-        List<ChatMessage> message = new ArrayList<ChatMessage>(); // GPT에게 보낼 메세지 어레이
-        message.add(new ChatMessage("user", prompt));
-        message.add(new ChatMessage("user", content));
-        ChatCompletionRequest completionRequest = ChatCompletionRequest.builder() // OpenAI의 모델 선택하여 메세지 전달후 결과 텍스트 받기
-                .messages(message)
-                .model("gpt-3.5-turbo") // 터보 모델 사용
-                .maxTokens(1000)
-                .temperature((double) 1.0f) // 답변의 자유도 설정
-                .build();
-
-        return service.createChatCompletion(completionRequest).getChoices().get(0)
-                .getMessage().getContent();
-    }
 }
