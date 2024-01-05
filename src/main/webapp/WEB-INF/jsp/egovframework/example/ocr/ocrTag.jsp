@@ -31,7 +31,7 @@
 			</form>
 			<textarea id="pur" name="purpose" cols="150" rows="5">${purpose}</textarea>
 			<br>
-			<button onclick="window.open('${imgLink}', '_blank')">textCloud</button>
+			<button onclick="window.open('${imgLink}', '_blank')">WordCloud</button>
 			<button type="button" onclick="history.back()">뒤로가기</button>
 		</fieldset>
 	</div>
