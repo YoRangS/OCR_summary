@@ -197,6 +197,7 @@ public class OcrSampleController {
         model.addAttribute("result", scanResult);
         model.addAttribute("lang", lang);
         model.addAttribute("jsonTag", jsonTag);
+        model.addAttribute("imgLink", convertToLink(jsonTag));
         
         
         return "ocr/ocrTag";
@@ -240,8 +241,38 @@ public class OcrSampleController {
         model.addAttribute("lang", lang);
         model.addAttribute("jsonTag", jsonTag);
         model.addAttribute("purpose", purpose);
+        model.addAttribute("imgLink", convertToLink(jsonTag));
         
         
         return "ocr/ocrTag";
+    }
+    
+    private static String convertToLink(String jsonString) {
+        // JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
+        String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
+
+        // 원하는 형식의 문자열로 변환
+        StringBuilder queryString = new StringBuilder();
+
+        for (String pair : keyValuePairs) {
+            // 각 키-값 쌍을 콜론을 기준으로 나누기
+            String[] entry = pair.split(":");
+
+            // 특수 문자 처리를 위해 key를 변환
+            String key = entry[0].trim().replace("\"", "").replace(" ", "%20").replace("_", "%5F");
+
+            // 쿼리 스트링에 추가
+            queryString.append(key)
+                    .append(":")
+                    .append(entry[1].trim())
+                    .append(",");
+        }
+
+        // 마지막 쉼표 제거
+        if (queryString.length() > 0) {
+            queryString.deleteCharAt(queryString.length() - 1);
+        }
+
+        return "https://quickchart.io/wordcloud?text=" + queryString.toString() + "&useWordList=true";
     }
 }

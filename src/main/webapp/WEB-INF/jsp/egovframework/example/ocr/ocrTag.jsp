@@ -31,26 +31,9 @@
 			</form>
 			<textarea id="pur" name="purpose" cols="150" rows="5">${purpose}</textarea>
 			<br>
-			<button onclick="getTagCloud()">textCloud</button>
+			<button onclick="window.open('${imgLink}', '_blank')">textCloud</button>
 			<button type="button" onclick="history.back()">뒤로가기</button>
 		</fieldset>
 	</div>
-	<%-- <p id="json" style="display:none;">jsonTag : ${jsonTag}</p> --%>
-	<p id="json" style="display:none;">${jsonTag}</p>
-	<div id="container" style="width: 600px; height: 400px; border: 1px solid #333;"></div>
 </body>
-<script>
-	function getTagCloud() {
-		var jsonString = document.getElementById("json").textContent;
-		console.log(jsonString);
-		const jsonObject = JSON.parse(jsonString);
-		const data = Object.entries(jsonObject).map(([key, value]) => {
-		    return { x: key, value: value };
-		});
-		console.log(data);
-		chart = anychart.tagCloud(data);
-		chart.container("container");
-		chart.draw();
-	}
-</script>
 </html>
