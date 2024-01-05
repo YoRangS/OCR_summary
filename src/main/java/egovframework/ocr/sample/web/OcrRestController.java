@@ -150,6 +150,9 @@ public class OcrRestController {
      public ResponseEntity<?> vision(@RequestParam("scanResult") String scanResult, @RequestParam("language") String language) throws IllegalStateException, IOException {
     	 String prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
          String jsonTag = ""; // json 형식의 요약 태그를 보관
+         String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
+         String purpose = ""; // 태그를 기반으로 한 텍스트의 의도 추출
+         String tagAndText = "";
          
          System.out.println("[rest] prompt: " + prompt);
          System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
@@ -157,8 +160,28 @@ public class OcrRestController {
          
          jsonTag = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
          
+         prompt = "TOP_TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+         
+         System.out.println("[rest] prompt: " + prompt);
+         System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+         System.out.println("[rest] tags: " + jsonTag);
+         
+         topTags = UseGPT.useGPT(Prompts.getPrompt(prompt), jsonTag); // 가장 빈도수 높은 태그 5개로 추리기
+         
+         prompt = "PUR_" + language.toUpperCase();
+         tagAndText = topTags + "\n" + scanResult;
+         purpose = UseGPT.useGPT(Prompts.getPrompt(prompt), tagAndText); // topTags 기반으로 텍스트의 의도 추출
+         
+         System.out.println("[rest] prompt: " + prompt);
+         System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+         System.out.println("[rest] Top 5 tags: " + topTags);
+         System.out.println("[rest] Tag and Text: " + tagAndText);
+         System.out.println("[rest] Purpose" + purpose);
+         
          Map<String, String> response = new HashMap<>();
          response.put("jsonTag", jsonTag);
+         response.put("topTags", topTags);
+         response.put("purpose", purpose);
          response.put("imgLink", convertToLink(jsonTag));
          
          return ResponseEntity.ok(response);
