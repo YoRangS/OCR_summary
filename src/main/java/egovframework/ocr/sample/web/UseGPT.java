@@ -30,7 +30,7 @@ public class UseGPT {
                 .messages(message)
                 .model("gpt-3.5-turbo-1106") // 터보에서 터보-1106 모델로 변경.
                 .maxTokens(4000) // 입력과 출력중 출력에 할당되는 최대 토큰 값. 현재 입출력 최대 토큰 16,385
-                .temperature((double) 1.0f) // 답변의 자유도 설정
+                .temperature((double) 0.7f) // 답변의 자유도 설정
                 .build();
 
         return service.createChatCompletion(completionRequest).getChoices().get(0)
