@@ -18,37 +18,63 @@
 <body>
 	<div id="main">
 		<section>
-			<form action="/tess.do" method="POST" enctype="multipart/form-data">
-				<fieldset>
-					<legend>입력</legend>
-					<label for="language">텍스트 추출에 사용할 언어를 선택해주세요:</label> <select
-						id="language" name="language">
-						<option value="kor">한국어</option>
-						<option value="eng">영어</option>
-					</select>
-					<p>
-						파일 선택: <input id="fileUpload" type="file" name="file" /><br>
-						<img id="previewImg" width="300" alt="이미지 영역" /> <br> <br>
-						<script>
-							const fileInput = document.getElementById("fileUpload");
-			                
-	                        const handleFiles = (e) => {
-	                          const selectedFile = [...fileInput.files];
-	                          const fileReader = new FileReader();
-	                
-	                          fileReader.readAsDataURL(selectedFile[0]);
-	                
-	                          fileReader.onload = function () {
-	                            document.getElementById("previewImg").src = fileReader.result;
-	                          };
-	                        };
-	                
-	                        fileInput.addEventListener("change", handleFiles);
-                        </script>
-						<br>
-						<br> <input type="submit" value="제출하기" />
-				</fieldset>
-			</form>
+		<form action="/tess.do" method="POST" enctype="multipart/form-data">
+		    <fieldset>
+		        <legend>입력</legend>
+		        <label for="language">텍스트 추출에 사용할 언어를 선택해주세요:</label>
+		        <select id="language" name="language">
+		            <option value="kor">한국어</option>
+		            <option value="eng">영어</option>
+		        </select>
+		        <p>
+					파일 선택: <input id="fileUpload" type="file" name="file" /><br>
+		            <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br>
+		            <script>
+		                const fileInput = document.getElementById("fileUpload");
+		
+		                const handleFiles = (e) => {
+		                    const selectedFile = [...fileInput.files];
+		                    const fileReader = new FileReader();
+		
+		                    fileReader.readAsDataURL(selectedFile[0]);
+		
+		                    fileReader.onload = function () {
+		                        document.getElementById("previewImg").src = fileReader.result;
+		                    };
+		                };
+		
+		                fileInput.addEventListener("change", handleFiles);
+		            </script>
+		            <br>
+		            <br>
+		            <label>추출 방식 선택:</label>
+		            <select id="tessType" name="tessType">
+		                <option value="tess">일반 추출</option>
+		                <option value="tessLimit">특정 페이지 추출</option>
+		            </select>
+		
+		            <!-- Check for specific page extraction -->
+		            <div id="specificPageFields" style="display:none;">
+		                <label for="startPage">시작 페이지:</label>
+		                <input type="text" id="startPage" name="startPage" value="1" />
+		
+		                <label for="endPage">종료 페이지:</label>
+		                <input type="text" id="endPage" name="endPage" value="1" />
+		            </div>
+		            
+		            <br><br>
+		            <input type="submit" value="제출하기" />
+		    </fieldset>
+		</form>
+		
+		<script>
+		    const extractionTypeSelect = document.getElementById("tessType");
+		    const specificPageFields = document.getElementById("specificPageFields");
+		
+		    extractionTypeSelect.addEventListener("change", function() {
+		        specificPageFields.style.display = (extractionTypeSelect.value === "tessLimit") ? "block" : "none";
+		    });
+		</script>
 			<br>
 			<hr>
 			<br>
