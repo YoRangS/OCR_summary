@@ -56,7 +56,7 @@ public class OcrSampleController {
 	 * @param lang  오타수정에 사용할 언어
 	 * @param model 페이지모델
 	 * @return ocrSampleList 화면
-	 * @see ocrTestApplication.java
+	 * @see ocrTsseract.java
 	 * @see UseGPT.useGPT
 	 */
 	@RequestMapping(value = "/tess.do", method = RequestMethod.POST)
@@ -113,6 +113,7 @@ public class OcrSampleController {
 				File imgFile = new File(imagePath);
 				pageText = OcrTesseract.ocrTess(imgFile.getName(), language);
 				result = result + pageText + "\n";
+				
 				imgFile.delete(); 
 			}
 		}
