@@ -12,6 +12,6 @@ public class KeyValue_tmp {
 	/*OpenAI 모델을 사용함에 필요한 키값. 반드시 본인의 키값으로 바꾸어야 한다.*/
 	public static String gptKey = "Your key from OpenAI - https://platform.openai.com/docs/introduction";
 	
-	/*임시 이미지를 저장하는 위치. 반드시 본인이 파일을 임시 저장할 위치로 바꾸어야 한다.*/
-	public static String uploadDir = "Directory name to change\\" + "eGovFrameDev-3.10.0-64bit\\workspace\\OCR_summary-main\\src\\main\\java\\saveImage";
+	/*임시 이미지를 저장하는 위치. 반드시 본인이 파일을 임시 저장할 위치로 바꾸어야 한다. 또한 끝은 \\ 으로 두어야 한다.*/
+	public static String uploadDir = "Directory name to change\\" + "eGovFrameDev-3.10.0-64bit\\workspace\\OCR_summary-main\\src\\main\\java\\saveImage\\";
 }
