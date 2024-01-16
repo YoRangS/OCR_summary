@@ -2,6 +2,7 @@ package egovframework.ocr.sample.web;
 
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
@@ -13,8 +14,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
 import javax.servlet.annotation.MultipartConfig;
 
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -117,6 +121,91 @@ public class OcrRestController {
         
         return ResponseEntity.ok(response);
     }
+    
+    /**
+     * tess_sum이름의 POST 타입 호출을 받아 텍스트 추출 및 요약
+     * @param file 이미지/pdf 폴더
+     * @param language 오타수정에 사용할 언어
+     * @return 파일 이름, 언어, 오타수정 요청을 거친 텍스트를 보관한 response 해시맵
+     * @throws IOException 
+     * @throws IllegalStateException 
+     * @see ocrTestApplication.java
+     * @see UseGPT.useGPT
+     */
+     @PostMapping("/tess_specific")
+     public ResponseEntity<?> tess_specific(@RequestParam("file") MultipartFile file, @RequestParam("language") String language, @RequestParam("startPage") String startPage, @RequestParam("endPage") String endPage) throws IllegalStateException, IOException {
+         //MultipartFile file = (MultipartFile) input.get("file");
+         //String language = (String) input.get("language");
+         
+         String fullPath = null; // path to upload image file
+         if(!file.isEmpty()) {
+             fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
+             System.out.println("File Save fullPath = " + fullPath);
+             file.transferTo(new File(fullPath));
+         } else {
+             System.out.println("isEmpty!");
+         }
+         System.out.println("Here!");
+         String prompt = ""; // ChatGPT에게 보낼 명령어
+         String pageText = ""; // PDF의 각 이미지 마다의 텍스트
+         String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
+         String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+         String summaryText = ""; // 요약 텍스트
+         String fileName = file.getOriginalFilename(); // 파일의 이름
+         String imagePath = ""; // 새롭게 만들어질 각 이미지의 위치
+         int start = 1, end = 1;
+         
+         try {
+ 			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
+ 			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
+ 		 } catch (NumberFormatException e) { // start 와 end가 숫자로 변환되지 않을 경우 오류 출력
+ 			e.printStackTrace();
+ 		 }
+         
+         for (int i = start; i <= end; i++) { 
+				System.out.println("Checking for " + i);
+				imagePath = UPLOAD_DIR + "image_page_" + i + ".png"; // 각 페이지 마다 임시이미지 파일 생성. 
+				System.out.println("Image directory" + imagePath); 
+				
+				try (PDDocument document = PDDocument.load(new File(fullPath))) { 
+					PDFRenderer pdfRenderer = new PDFRenderer(document);
+					BufferedImage image = pdfRenderer.renderImageWithDPI(i-1, 300); // 페이지, 300은 이미지 렌더링의 수준. 300은 높은수준.
+					ImageIO.write(image, "png", new File(imagePath)); // 이미지를 imagePath의 디렉토리에 image_page 이름으로 저장.
+					System.out.println("Saving image done");
+				} 
+				catch (IOException e) { //Handle the exception appropriately 
+					e.printStackTrace(); 
+				}
+				
+				File imgFile = new File(imagePath);
+				pageText = OcrTesseract.ocrTess(imgFile.getName(), language);
+				result = result + pageText + "\n";
+				
+				imgFile.delete(); 
+			}
+         
+         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+         preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+         preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
+         summaryText = summary(preprocessingResult, language);
+         // 리턴값으로 돌려줄 파일이름, 언어, 오타수정 결과 텍스트
+         Map<String, String> response = new HashMap<>();
+         response.put("fileName", fileName);
+         response.put("language", language);
+         response.put("rawText", result);
+         response.put("preprocessingResult", preprocessingResult);
+         response.put("summary", summaryText);
+         
+         if (fullPath != null) { // remove temporary file
+             File doDelete = new File(fullPath);
+             if(doDelete.exists()) {
+                 doDelete.delete();
+             }
+         }
+         
+         return ResponseEntity.ok(response);
+     }
+     
     /**
      * 요약이 필요한 텍스트와 언어를 받아 요약 결과 출력
      * @param text 요약을 위해 받는 텍스트
