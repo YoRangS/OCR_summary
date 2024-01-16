@@ -34,7 +34,7 @@ public class OcrTesseract {
 	     tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
 
 	     tesseract.setTessVariable("user_defined_dpi", "300"); // sets dpi to avoid warning message
-	     String filePath = OcrSampleController.UPLOAD_DIR;
+	     String filePath = KeyValue.uploadDir;
 	     String imageLocation = filePath + imgName;
 	     
 	     /* TODO: 언어 인식 기능 넣기 */
