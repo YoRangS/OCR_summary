@@ -84,6 +84,11 @@ public class OcrSampleController {
 		try {
 			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
 			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
+			if (start > end) { // 시작 페이지 값이 끝 페이지보다 큰 경우
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
 		} catch (NumberFormatException e) { // start 와 end가 숫자로 변환되지 않을 경우 오류 출력
 			e.printStackTrace();
 		}
