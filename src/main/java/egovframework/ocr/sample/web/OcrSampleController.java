@@ -72,7 +72,6 @@ public class OcrSampleController {
 		System.out.println(UPLOAD_DIR);
 		if (!file.isEmpty()) {
 			fullPath =  UPLOAD_DIR + file.getOriginalFilename();
-			System.out.println("Saving full path: " + fullPath);
 			file.transferTo(new File(fullPath));
 		} else {
 			System.out.println("isEmpty!");
@@ -96,7 +95,7 @@ public class OcrSampleController {
 
 		System.out.println("Tess type:" + tessType);
 		if ("tess".equals(tessType)) { // 기본값으로 행동할 경우
-			System.out.println("Doing tess!\nfilename: "+file.getOriginalFilename()+"\nlanguage: "+language);
+			System.out.println("Doing tess!");
 			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
 		} else if ("tessLimit".equals(tessType)) { // 기본값으로 행동하지 않을 경우
 			System.out.println("Not doing tess!");
@@ -134,12 +133,12 @@ public class OcrSampleController {
 		model.addAttribute("fileName", fileName);
 		model.addAttribute("lang", language);
 		
-//		if (fullPath != null) { // remove temporary file
-//			File doDelete = new File(fullPath);
-//			if (doDelete.exists()) {
-//				doDelete.delete();
-//			}
-//		}
+		if (fullPath != null) { // remove temporary file
+			File doDelete = new File(fullPath);
+			if (doDelete.exists()) {
+				doDelete.delete();
+			}
+		}
 
 		return "ocr/ocrSampleList";
 	}
