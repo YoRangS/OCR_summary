@@ -10,10 +10,10 @@
 		<relativePath/>
 	</parent> -->
 	<groupId>ocr</groupId>
-	<artifactId>ocr_frame</artifactId>
+	<artifactId>ocr</artifactId>
 	<packaging>war</packaging>
 	<version>1.0.0</version>
-	<name>ocr_frame</name>
+	<name>ocr</name>
 	<url>http://www.egovframe.go.kr</url>
 
 	<licenses>
