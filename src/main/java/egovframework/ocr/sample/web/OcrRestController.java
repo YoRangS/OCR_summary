@@ -15,10 +15,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
 import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,8 +62,12 @@ import com.theokanning.openai.service.OpenAiService;
         maxRequestSize = 1024*1024*5*5
         )
 public class OcrRestController {
+	
+	@Autowired
+    private ServletContext servletContext;
+
     /** 이미지 업로드 디렉토리 */
-	public static final String UPLOAD_DIR = KeyValue.uploadDir;
+	private String UPLOAD_DIR;
 	
     @GetMapping("/{name}")
     public String sayHello(@PathVariable String name) {
@@ -83,6 +89,7 @@ public class OcrRestController {
         //MultipartFile file = (MultipartFile) input.get("file");
         //String language = (String) input.get("language");
         
+    	UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
         String fullPath = null; // path to upload image file
         if(!file.isEmpty()) {
             fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
@@ -98,7 +105,7 @@ public class OcrRestController {
         String summaryText = ""; // 요약 텍스트
         String fileName = file.getOriginalFilename(); // 파일의 이름
         
-        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language); 
+        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
@@ -136,7 +143,8 @@ public class OcrRestController {
      public ResponseEntity<?> tess_specific(@RequestParam("file") MultipartFile file, @RequestParam("language") String language, @RequestParam("startPage") String startPage, @RequestParam("endPage") String endPage) throws IllegalStateException, IOException {
          //MultipartFile file = (MultipartFile) input.get("file");
          //String language = (String) input.get("language");
-         
+
+     	 UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
          String fullPath = null; // path to upload image file
          if(!file.isEmpty()) {
              fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
@@ -178,7 +186,7 @@ public class OcrRestController {
 				}
 				
 				File imgFile = new File(imagePath);
-				pageText = OcrTesseract.ocrTess(imgFile.getName(), language);
+				pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
 				result = result + pageText + "\n";
 				
 				imgFile.delete(); 

@@ -29,12 +29,11 @@ public class OcrTesseract {
 		}
 	}
 	
-	 public static String ocrTess(String imgName, String lang) {
+	 public static String ocrTess(String imgName, String lang, String filePath) {
 	     Tesseract tesseract = new Tesseract();  // JNA Interface Mapping
 	     tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
 
 	     tesseract.setTessVariable("user_defined_dpi", "300"); // sets dpi to avoid warning message
-	     String filePath = KeyValue.uploadDir;
 	     String imageLocation = filePath + imgName;
 	     
 	     /* TODO: 언어 인식 기능 넣기 */
