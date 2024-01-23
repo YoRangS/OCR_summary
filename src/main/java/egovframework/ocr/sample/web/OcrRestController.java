@@ -15,10 +15,12 @@ import java.util.Map;
 import java.util.UUID;
 
 import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
 import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -60,8 +62,12 @@ import com.theokanning.openai.service.OpenAiService;
         maxRequestSize = 1024*1024*5*5
         )
 public class OcrRestController {
+	
+	@Autowired
+    private ServletContext servletContext;
+
     /** 이미지 업로드 디렉토리 */
-	public static final String UPLOAD_DIR = KeyValue.uploadDir;
+	private String UPLOAD_DIR;
 	
     @GetMapping("/{name}")
     public String sayHello(@PathVariable String name) {
@@ -84,14 +90,13 @@ public class OcrRestController {
         //String language = (String) input.get("language");
         
         String fullPath = transferFile(file);
-        
         String prompt = ""; // ChatGPT에게 보낼 명령어
         String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
         String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
         String summaryText = ""; // 요약 텍스트
         String fileName = file.getOriginalFilename(); // 파일의 이름
         
-        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language); 
+        result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
         
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
@@ -122,11 +127,11 @@ public class OcrRestController {
      * @see UseGPT.useGPT
      */
      @PostMapping("/tess_specific")
+
      public ResponseEntity<?> tessSpecific(@RequestParam("file") MultipartFile file, @RequestParam("language") String language, 
     		 @RequestParam("startPage") String startPage, @RequestParam("endPage") String endPage) throws IllegalStateException, IOException {
          
          String fullPath = transferFile(file);
-         
          String prompt = ""; // ChatGPT에게 보낼 명령어
          String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
          String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
@@ -134,6 +139,7 @@ public class OcrRestController {
          String fileName = file.getOriginalFilename(); // 파일의 이름
          int start = 1, end = 1;
          
+
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
          prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
@@ -164,14 +170,15 @@ public class OcrRestController {
  	}
      
      private String transferFile(MultipartFile file) throws IOException {
- 		String fullPath = null; // path to upload image file
-         if(!file.isEmpty()) {
-             fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
-             System.out.println("File Save fullPath = " + fullPath);
-             file.transferTo(new File(fullPath));
-         } else {
-             System.out.println("isEmpty!");
-         }
+    	  UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
+        String fullPath = null; // path to upload image file
+        if(!file.isEmp ty()) {
+            fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
+            System.out.println("File Save fullPath = " + fullPath);
+            file.transferTo(new File(fullPath));
+        } else {
+            System.out.println("isEmpty!");
+        }
  		return fullPath;
  	}
      

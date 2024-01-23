@@ -4,18 +4,22 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-
 import javax.imageio.ImageIO;
+import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -41,9 +45,10 @@ import com.theokanning.openai.service.OpenAiService;
 @Controller
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class OcrSampleController {
-	/** 이미지 업로드 디렉토리 */
-	public static final String UPLOAD_DIR = KeyValue.uploadDir;
-
+	
+	@Autowired
+    private ServletContext servletContext;
+	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET)
 	public String test() {
 		return "ocr/ocrSampleList";
@@ -62,11 +67,11 @@ public class OcrSampleController {
 	@RequestMapping(value = "/tess.do", method = RequestMethod.POST)
 	public String tess(@RequestParam MultipartFile file, String language, Model model, String tessType,
 			String startPage, String endPage) throws IOException, ServletException {
-
-		String fullPath = null; // path to upload image file
+		String UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
+		String fullPath = null;
+		System.out.println(UPLOAD_DIR);
 		if (!file.isEmpty()) {
-			fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
-			System.out.println("File Save fullPath = " + fullPath);
+			fullPath =  UPLOAD_DIR + file.getOriginalFilename();
 			file.transferTo(new File(fullPath));
 		} else {
 			System.out.println("isEmpty!");
@@ -96,7 +101,7 @@ public class OcrSampleController {
 		System.out.println("Tess type:" + tessType);
 		if ("tess".equals(tessType)) { // 기본값으로 행동할 경우
 			System.out.println("Doing tess!");
-			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language);
+			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
 		} else if ("tessLimit".equals(tessType)) { // 기본값으로 행동하지 않을 경우
 			System.out.println("Not doing tess!");
 			
@@ -116,7 +121,7 @@ public class OcrSampleController {
 				}
 				
 				File imgFile = new File(imagePath);
-				pageText = OcrTesseract.ocrTess(imgFile.getName(), language);
+				pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
 				result = result + pageText + "\n";
 				
 				imgFile.delete(); 
