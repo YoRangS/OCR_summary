@@ -45,6 +45,7 @@
 				        var saveBtn = document.getElementById('saveBtn');
 				        var previewImage = document.getElementById('previewImage');
 				        var cropper;
+				        
 				
 				        window.addEventListener('DOMContentLoaded', function () {
 				        	previewImage = document.getElementById('previewImage');
@@ -100,7 +101,7 @@
 				
 				            if (canvas) {
 				                // Convert canvas to a data URL
-				                var croppedImageDataURL = canvas.toDataURL("image/jpeg");
+				                var croppedImageDataURL = canvas.toDataURL("");
 				
 				                previewImage.src = croppedImageDataURL;
 				                document.getElementById('croppedImage').value = croppedImageDataURL;
@@ -111,8 +112,8 @@
 				            }
 				        });
 				        
-				        
-				        document.getElementById('imageForm').addEventListener('submit', function (e) {
+				        function submitHandler(e) {
+				        /* document.getElementById('imageForm').addEventListener('submit', function (e) { */
 				        	  e.preventDefault(); // 폼의 기본 동작을 막음
 				        	  
 				        	  // FormData 객체 생성
@@ -124,21 +125,22 @@
 				        	  if (fileInput.files.length > 0) {
 				        	    var file = fileInput.files[0];
 
-				        	    // FileReader를 사용하여 Data URL 읽기
+				        	    /* // FileReader를 사용하여 Data URL 읽기
 				        	    var reader = new FileReader();
-				        	    reader.onload = function (event) {
+				        	    reader.onload = function (event) { */
 				        	      var imageDataURL = document.getElementById('croppedImage').value;
-
+				        	      console.log("dataurl input!");
+		
 				        	      // Data URL을 Blob 객체로 변환
 				        	      var blob = dataURLtoBlob(imageDataURL);
-
+		
 				        	      formData.append('file', blob, 'image.png');
 				        	      console.log(blob);
 				        	      console.log("file blob");
-				        	    };
-				        	    console.log("before reader");
+				        	    /*};  */
+				        	    /* console.log("before reader");
 				        	    reader.readAsDataURL(file);
-				        	    console.log("after reader");
+				        	    console.log("after reader"); */
 				        	  }
 				        	  
 				        	  formData.append('language', document.getElementById('language').value);
@@ -150,34 +152,42 @@
 				        	  
 				        	  // 폼을 서버로 제출
 			        	      submitForm(formData);
-				        });
+				        	 	
+			        	   // 이벤트 리스너 제거 (또는 주석 처리)
+			        	      document.getElementById('imageForm').removeEventListener('submit', submitHandler);
+				        /* }); */
+				        }
+				        
+				     	// 제출 버튼에 이벤트 리스너 등록
+				        document.getElementById('imageForm').addEventListener('submit', submitHandler);
+				        
+			        	function submitForm(formData) {
+			        	  // Ajax를 사용하여 FormData를 서버로 전송
+			        	  var xhr = new XMLHttpRequest();
+			        	  xhr.open('POST', '/tess.do', true);
+			        	  xhr.onreadystatechange = function () {
+			        	    if (xhr.readyState === 4 && xhr.status === 200) {
+			        	      // 서버 응답 처리
+			        	      console.log(xhr.responseText);
+			        	      /* window.location.href = '/tess.do'; */
+			        	    }
+			        	  };
+			        	  xhr.send(formData);
+			        	}
 
-				        	function submitForm(formData) {
-				        	  // Ajax를 사용하여 FormData를 서버로 전송
-				        	  var xhr = new XMLHttpRequest();
-				        	  xhr.open('POST', '/tess.do', true);
-				        	  xhr.onreadystatechange = function () {
-				        	    if (xhr.readyState === 4 && xhr.status === 200) {
-				        	      // 서버 응답 처리
-				        	      console.log(xhr.responseText);
-				        	    }
-				        	  };
-				        	  xhr.send(formData);
-				        	}
+			        	function dataURLtoBlob(dataURL) {
+			        	  var arr = dataURL.split(',');
+			        	  var mime = arr[0].match(/:(.*?);/)[1];
+			        	  var bstr = atob(arr[1]);
+			        	  var n = bstr.length;
+			        	  var u8arr = new Uint8Array(n);
 
-				        	function dataURLtoBlob(dataURL) {
-				        	  var arr = dataURL.split(',');
-				        	  var mime = arr[0].match(/:(.*?);/)[1];
-				        	  var bstr = atob(arr[1]);
-				        	  var n = bstr.length;
-				        	  var u8arr = new Uint8Array(n);
+			        	  while (n--) {
+			        	    u8arr[n] = bstr.charCodeAt(n);
+			        	  }
 
-				        	  while (n--) {
-				        	    u8arr[n] = bstr.charCodeAt(n);
-				        	  }
-
-				        	  return new Blob([u8arr], { type: mime });
-				        	}
+			        	  return new Blob([u8arr], { type: mime });
+			        	}
 				    </script>
 		            <!-- <script>
 		                const fileInput = document.getElementById("fileUpload");

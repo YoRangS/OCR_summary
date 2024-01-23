@@ -127,17 +127,21 @@ public class OcrSampleController {
 				imgFile.delete(); 
 			}
 		}
-		
+		System.out.println("debug1");
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
 																	// being lost
+		System.out.println(result);
+		System.out.println(preprocessingResult);
+		System.out.println(fileName);
+		System.out.println(language);
 		/* Saves results to webpage model */
 		model.addAttribute("scan", result);
 		model.addAttribute("result", preprocessingResult);
 		model.addAttribute("fileName", fileName);
 		model.addAttribute("lang", language);
-		
+		System.out.println(model.toString());
 		if (fullPath != null) { // remove temporary file
 			File doDelete = new File(fullPath);
 			if (doDelete.exists()) {
