@@ -172,7 +172,7 @@ public class OcrRestController {
      private String transferFile(MultipartFile file) throws IOException {
     	  UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
         String fullPath = null; // path to upload image file
-        if(!file.isEmp ty()) {
+        if(!file.isEmpty()) {
             fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
             System.out.println("File Save fullPath = " + fullPath);
             file.transferTo(new File(fullPath));
@@ -215,7 +215,7 @@ public class OcrRestController {
 			}
 			
 			File imgFile = new File(imagePath);
-			pageText = OcrTesseract.ocrTess(imgFile.getName(), language);
+			pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
 			result = result + pageText + "\n";
 			
 			imgFile.delete(); 
@@ -283,7 +283,7 @@ public class OcrRestController {
          String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
          String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
          
-         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language); 
+         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
          
          prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
