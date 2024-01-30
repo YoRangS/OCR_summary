@@ -32,10 +32,10 @@
 		        <p>
 					파일 선택: <input id="fileUpload" type="file"/><br>
 		            <!-- <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br> -->
-		            <img id="previewImage" src=""><br>
+		            <img id="previewImage" width="500" src=""><br>
 		            <button type="button" onclick="crop(); return false;">Cropped Image</button>
             		<button type="button" id="saveBtn" style="display:none">Save</button>
-		            <input type="hidden" type="file" id="croppedImage" name="file">
+		            <input type="hidden" type="text" id="croppedImage" name="file">
 		            <script
 			            src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
 			            integrity="sha512-9KkIqdfN7ipEW6B6k+Aq20PV31bjODg4AA52W+tYtAE0jE0kMx49bjJ3FgvS56wzmyfMUHbQ4Km2b7l9+Y/+Eg=="
@@ -45,11 +45,12 @@
 				        var saveBtn = document.getElementById('saveBtn');
 				        var previewImage = document.getElementById('previewImage');
 				        var cropper;
-				        
+				        var formData = new FormData();
 				
 				        window.addEventListener('DOMContentLoaded', function () {
 				        	previewImage = document.getElementById('previewImage');
-				
+							
+				        	console.log("start");
 				            inputImage.addEventListener('change', function (e) {
 				                var file = e.target.files[0];
 				                var reader = new FileReader();
@@ -98,6 +99,7 @@
 				        saveBtn.addEventListener('click', function () {
 				            var canvas = cropper.getCroppedCanvas();
 				            var previewImage = document.getElementById('previewImage');
+				            var fileInput = document.getElementById('fileUpload');
 				
 				            if (canvas) {
 				                // Convert canvas to a data URL
@@ -110,84 +112,77 @@
 				            } else {
 				                console.log('Canvas is null. Please adjust cropping parameters.');
 				            }
-				        });
-				        
-				        function submitHandler(e) {
-				        /* document.getElementById('imageForm').addEventListener('submit', function (e) { */
-				        	  e.preventDefault(); // 폼의 기본 동작을 막음
-				        	  
-				        	  // FormData 객체 생성
-			        	      var formData = new FormData();
 
-				        	  var fileInput = document.getElementById('fileUpload');
-
-				        	  // 파일이 선택되었는지 확인
+				            console.log("before file");
+			        	    // 파일이 선택되었는지 확인
 				        	  if (fileInput.files.length > 0) {
+				        		console.log("if");
 				        	    var file = fileInput.files[0];
 
-				        	    /* // FileReader를 사용하여 Data URL 읽기
-				        	    var reader = new FileReader();
-				        	    reader.onload = function (event) { */
-				        	      var imageDataURL = document.getElementById('croppedImage').value;
-				        	      console.log("dataurl input!");
+				        	    var imageDataURL = document.getElementById('croppedImage').value;
+				        	    console.log("dataurl input!");
 		
-				        	      // Data URL을 Blob 객체로 변환
-				        	      var blob = dataURLtoBlob(imageDataURL);
+				        	    // Data URL을 Blob 객체로 변환
+				        	    var blob = dataURLtoBlob(imageDataURL);
 		
-				        	      formData.append('file', blob, 'image.png');
-				        	      console.log(blob);
-				        	      console.log("file blob");
-				        	    /*};  */
-				        	    /* console.log("before reader");
-				        	    reader.readAsDataURL(file);
-				        	    console.log("after reader"); */
+				        	    formData.append('file', blob, 'image.png');
+				        	    console.log(blob);
+				        	    console.log("file blob");
 				        	  }
-				        	  
-				        	  formData.append('language', document.getElementById('language').value);
+			        	      formData.append('language', document.getElementById('language').value);
 				        	  formData.append('tessType', document.getElementById('tessType').value);
 				        	  formData.append('startPage', document.getElementById('startPage').value);
 				        	  formData.append('endPage', document.getElementById('endPage').value);
 				        	  console.log("append");
 				        	  console.log(document.getElementById('language').value);
-				        	  
-				        	  // 폼을 서버로 제출
-			        	      submitForm(formData);
-				        	 	
-			        	   // 이벤트 리스너 제거 (또는 주석 처리)
-			        	      document.getElementById('imageForm').removeEventListener('submit', submitHandler);
-				        /* }); */
-				        }
+				        	  console.log('FormData content:');
+				        	  formData.forEach((value, key) => {
+				        	      console.log(key, value);
+				        	  });
+				        	 
+				        });
 				        
-				     	// 제출 버튼에 이벤트 리스너 등록
-				        document.getElementById('imageForm').addEventListener('submit', submitHandler);
 				        
-			        	function submitForm(formData) {
-			        	  // Ajax를 사용하여 FormData를 서버로 전송
-			        	  var xhr = new XMLHttpRequest();
-			        	  xhr.open('POST', '/tess.do', true);
-			        	  xhr.onreadystatechange = function () {
-			        	    if (xhr.readyState === 4 && xhr.status === 200) {
-			        	      // 서버 응답 처리
-			        	      console.log(xhr.responseText);
-			        	      /* window.location.href = '/tess.do'; */
-			        	    }
-			        	  };
-			        	  xhr.send(formData);
-			        	}
+				        document.getElementById('imageForm').addEventListener('submit', function (e) {
+				        	/* e.preventDefault(); */
+				        	submitForm(formData);
+				        	  /* fetch('/tess.do',{
+				        			method:'POST',
+				        			body : formData,
+				        			headers: {
+				        	            'Content-Type': 'multipart/form-data'
+				        	        }
+				        	  }); */
+				        });
 
-			        	function dataURLtoBlob(dataURL) {
-			        	  var arr = dataURL.split(',');
-			        	  var mime = arr[0].match(/:(.*?);/)[1];
-			        	  var bstr = atob(arr[1]);
-			        	  var n = bstr.length;
-			        	  var u8arr = new Uint8Array(n);
+				        	function submitForm(formData) {
+				        	  // Ajax를 사용하여 FormData를 서버로 전송
+				        	  var xhr = new XMLHttpRequest();
+				        	  xhr.open('POST', '/tess.do', true);
+				        	  xhr.onreadystatechange = function () {
+				        	    if (xhr.readyState === 4 && xhr.status === 200) {
+				        	      // 서버 응답 처리
+				        	      console.log(xhr.responseText);
+				        	      /* window.location.href = '/tess.do'; */
+				        	      /* location.reload(); */
+				        	    }
+				        	  };
+				        	  xhr.send(formData);
+				        	}
 
-			        	  while (n--) {
-			        	    u8arr[n] = bstr.charCodeAt(n);
-			        	  }
+				        	function dataURLtoBlob(dataURL) {
+				        	  var arr = dataURL.split(',');
+				        	  var mime = arr[0].match(/:(.*?);/)[1];
+				        	  var bstr = atob(arr[1]);
+				        	  var n = bstr.length;
+				        	  var u8arr = new Uint8Array(n);
 
-			        	  return new Blob([u8arr], { type: mime });
-			        	}
+				        	  while (n--) {
+				        	    u8arr[n] = bstr.charCodeAt(n);
+				        	  }
+
+				        	  return new Blob([u8arr], { type: mime });
+				        	}
 				    </script>
 		            <!-- <script>
 		                const fileInput = document.getElementById("fileUpload");
