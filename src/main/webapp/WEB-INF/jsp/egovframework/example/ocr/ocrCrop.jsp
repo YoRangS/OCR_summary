@@ -30,7 +30,7 @@
 						파일 선택: <input id="fileUpload" type="file" onchange="updateFileName()" /><br>
 						<!-- <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br> -->
 						<img id="previewImage" width="500" src=""><br>
-						<button type="button" onclick="crop(); return false;">자르기 시작하기</button>
+						<button type="button" id="cropBtn" onclick="crop(); return false;">자르기 시작하기</button>
 						<button type="button" id="saveBtn" style="display: none">이미지 자르기</button><br>
 						<br> 파일 이름: <input type="text" id="fileName" name="fileName"><br>
 						<input type="hidden" type="text" id="cropImageURL" name="cropImageURL"><br>
@@ -47,6 +47,7 @@
 <script>
 	var inputImage = document.getElementById('fileUpload');
 	var saveBtn = document.getElementById('saveBtn');
+	var cropBtn = document.getElementById('cropBtn');
 	var previewImage = document.getElementById('previewImage');
 	var cropper;
 	var formData = new FormData();
@@ -100,11 +101,13 @@
 	                cropBoxResizable: true, // Allow resizing
 	                cropBoxMovable: true // Allow moving
 	            });
+
+		        cropBtn.style = style="display:none";
 	        };
 	
 	        // 파일을 읽어 데이터 URL로 변환
 	        reader.readAsDataURL(inputImage.files[0]);
-	
+			
 	        saveBtn.style = style="display:inline";
 	    } else {
 	        alert('Please select an image file.');
