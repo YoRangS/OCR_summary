@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 import net.sourceforge.tess4j.Tesseract;
 import net.sourceforge.tess4j.TesseractException;
+import org.apache.commons.lang3.SystemUtils;
 
 @Component("OcrTess")
 public class OcrTesseract {
@@ -31,7 +32,15 @@ public class OcrTesseract {
 	
 	 public static String ocrTess(String imgName, String lang, String filePath) {
 	     Tesseract tesseract = new Tesseract();  // JNA Interface Mapping
-	     tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
+	     
+	     if(SystemUtils.IS_OS_WINDOWS) // windows OS
+	     {
+	    	 tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
+	     }
+	     else if(SystemUtils.IS_OS_MAC) // macintosh OS
+	     {
+		     tesseract.setDatapath("/usr/local/Cellar/tesseract"); // replace with your tesseract path
+	     }
 
 	     tesseract.setTessVariable("user_defined_dpi", "300"); // sets dpi to avoid warning message
 	     String imageLocation = filePath + imgName;
