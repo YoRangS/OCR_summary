@@ -30,161 +30,17 @@
 		            <option value="eng">영어</option>
 		        </select>
 		        <p>
-					파일 선택: <input id="fileUpload" type="file"/><br>
-		            <!-- <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br> -->
-		            <img id="previewImage" width="500" src=""><br>
-		            <button type="button" onclick="crop(); return false;">Cropped Image</button>
-            		<button type="button" id="saveBtn" style="display:none">Save</button>
-		            <input type="hidden" type="text" id="croppedImage" name="file">
-		            <script
-			            src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.js"
-			            integrity="sha512-9KkIqdfN7ipEW6B6k+Aq20PV31bjODg4AA52W+tYtAE0jE0kMx49bjJ3FgvS56wzmyfMUHbQ4Km2b7l9+Y/+Eg=="
-			            crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-				    <script>
-				        var inputImage = document.getElementById('fileUpload');
-				        var saveBtn = document.getElementById('saveBtn');
-				        var previewImage = document.getElementById('previewImage');
-				        var cropper;
-				        var formData = new FormData();
-				
-				        window.addEventListener('DOMContentLoaded', function () {
-				        	previewImage = document.getElementById('previewImage');
-							
-				        	console.log("start");
-				            inputImage.addEventListener('change', function (e) {
-				                var file = e.target.files[0];
-				                var reader = new FileReader();
-				
-				                reader.onload = function (event) {
-				                	previewImage.src = event.target.result;
-				                };
-				
-				                reader.readAsDataURL(file);
-				            });
-				        });
-				
-				        function crop() {
-				            // 파일이 선택되었는지 확인
-				            if (inputImage.files && inputImage.files[0]) {
-				                // 파일을 읽기 위한 FileReader 객체 생성
-				                var reader = new FileReader();
-				
-				                // 파일이 로드되었을 때의 이벤트 처리
-				                reader.onload = function (e) {
-				                    console.log("file loaded!");
-				
-				                    // Destroy the previous cropper instance before creating a new one
-				                    if (cropper) {
-				                        cropper.destroy();
-				                    }
-				
-				                    cropper = new Cropper(previewImage, {
-				                        viewMode: 1,
-				                        dragMode: 'move',
-				                        autoCropArea: 1, // Set to 1 for auto-crop
-				                        cropBoxResizable: true, // Allow resizing
-				                        cropBoxMovable: true // Allow moving
-				                    });
-				                };
-				
-				                // 파일을 읽어 데이터 URL로 변환
-				                reader.readAsDataURL(inputImage.files[0]);
-				
-				                saveBtn.style = style="display:inline";
-				            } else {
-				                alert('Please select an image file.');
-				            }
-				        }
-				
-				        saveBtn.addEventListener('click', function () {
-				            var canvas = cropper.getCroppedCanvas();
-				            var previewImage = document.getElementById('previewImage');
-				            var fileInput = document.getElementById('fileUpload');
-				
-				            if (canvas) {
-				                // Convert canvas to a data URL
-				                var croppedImageDataURL = canvas.toDataURL("");
-				
-				                previewImage.src = croppedImageDataURL;
-				                document.getElementById('croppedImage').value = croppedImageDataURL;
-				                cropper.destroy();
-				                saveBtn.style="display:none"
-				            } else {
-				                console.log('Canvas is null. Please adjust cropping parameters.');
-				            }
-
-				            console.log("before file");
-			        	    // 파일이 선택되었는지 확인
-				        	  if (fileInput.files.length > 0) {
-				        		console.log("if");
-				        	    var file = fileInput.files[0];
-
-				        	    var imageDataURL = document.getElementById('croppedImage').value;
-				        	    console.log("dataurl input!");
-		
-				        	    // Data URL을 Blob 객체로 변환
-				        	    var blob = dataURLtoBlob(imageDataURL);
-		
-				        	    formData.append('file', blob, 'image.png');
-				        	    console.log(blob);
-				        	    console.log("file blob");
-				        	  }
-			        	      formData.append('language', document.getElementById('language').value);
-				        	  formData.append('tessType', document.getElementById('tessType').value);
-				        	  formData.append('startPage', document.getElementById('startPage').value);
-				        	  formData.append('endPage', document.getElementById('endPage').value);
-				        	  console.log("append");
-				        	  console.log(document.getElementById('language').value);
-				        	  console.log('FormData content:');
-				        	  formData.forEach((value, key) => {
-				        	      console.log(key, value);
-				        	  });
-				        	 
-				        });
-				        
-				        
-				        document.getElementById('imageForm').addEventListener('submit', function (e) {
-				        	/* e.preventDefault(); */
-				        	submitForm(formData);
-				        	  /* fetch('/tess.do',{
-				        			method:'POST',
-				        			body : formData,
-				        			headers: {
-				        	            'Content-Type': 'multipart/form-data'
-				        	        }
-				        	  }); */
-				        });
-
-				        	function submitForm(formData) {
-				        	  // Ajax를 사용하여 FormData를 서버로 전송
-				        	  var xhr = new XMLHttpRequest();
-				        	  xhr.open('POST', '/tess.do', true);
-				        	  xhr.onreadystatechange = function () {
-				        	    if (xhr.readyState === 4 && xhr.status === 200) {
-				        	      // 서버 응답 처리
-				        	      console.log(xhr.responseText);
-				        	      /* window.location.href = '/tess.do'; */
-				        	      /* location.reload(); */
-				        	    }
-				        	  };
-				        	  xhr.send(formData);
-				        	}
-
-				        	function dataURLtoBlob(dataURL) {
-				        	  var arr = dataURL.split(',');
-				        	  var mime = arr[0].match(/:(.*?);/)[1];
-				        	  var bstr = atob(arr[1]);
-				        	  var n = bstr.length;
-				        	  var u8arr = new Uint8Array(n);
-
-				        	  while (n--) {
-				        	    u8arr[n] = bstr.charCodeAt(n);
-				        	  }
-
-				        	  return new Blob([u8arr], { type: mime });
-				        	}
-				    </script>
-		            <!-- <script>
+		        <button type="button" onclick="redirectToOcrCropPage();">이미지 자르기</button>
+		        <br> ※이미지 자르기를 하려고 할 경우 파일을 새로 입력하여야 합니다
+		        <script>
+				    function redirectToOcrCropPage() {
+				        // Redirect to the ocrCrop.jsp page
+				        window.location.href = "/goToCrop.do";
+				    }
+				</script>
+		        <p>
+					파일 선택: <input id="fileUpload" type="file" name="file"/><br>
+					<script>
 		                const fileInput = document.getElementById("fileUpload");
 		
 		                const handleFiles = (e) => {
@@ -199,7 +55,10 @@
 		                };
 		
 		                fileInput.addEventListener("change", handleFiles);
-		            </script> -->
+		            </script>
+		            <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br>
+            		<button type="button" id="saveBtn" style="display:none">Save</button>
+		            <input type="hidden" type="text" id="croppedImage" name="file">
 		            <br>
 		            <br>
 		            <label>추출 방식 선택:</label>

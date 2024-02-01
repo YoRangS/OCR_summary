@@ -3,6 +3,7 @@ package egovframework.ocr.sample.web;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,10 +14,14 @@ import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -24,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.commons.CommonsMultipartResolver;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
  * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -41,13 +47,18 @@ import org.springframework.web.multipart.commons.CommonsMultipartResolver;
 @Controller
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class OcrSampleController {
-	
+
 	@Autowired
-    private ServletContext servletContext;
-	
+	private ServletContext servletContext;
+
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET)
 	public String test() {
 		return "ocr/ocrSampleList";
+	}
+
+	@RequestMapping("/goToCrop.do")
+	public String goToCrop() {
+		return "ocr/ocrCrop";
 	}
 
 	/**
@@ -63,12 +74,12 @@ public class OcrSampleController {
 	@RequestMapping(value = "/tess.do", method = RequestMethod.POST)
 	public String tess(@RequestParam MultipartFile file, String language, Model model, String tessType,
 			String startPage, String endPage) throws IOException, ServletException {
-		
+
 		String UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
 		String fullPath = null;
 		System.out.println(UPLOAD_DIR);
 		if (!file.isEmpty()) {
-			fullPath =  UPLOAD_DIR + file.getOriginalFilename();
+			fullPath = UPLOAD_DIR + file.getOriginalFilename();
 			file.transferTo(new File(fullPath));
 		} else {
 			System.out.println("isEmpty!");
@@ -82,7 +93,7 @@ public class OcrSampleController {
 
 		int start = 1, end = 1; // 페이지의 시작과 마무리
 		String imagePath = "";
-		
+
 		try {
 			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
 			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
@@ -101,27 +112,27 @@ public class OcrSampleController {
 			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
 		} else if ("tessLimit".equals(tessType)) { // 기본값으로 행동하지 않을 경우
 			System.out.println("Not doing tess!");
-			
-			for (int i = start; i <= end; i++) { 
+
+			for (int i = start; i <= end; i++) {
 				System.out.println("Checking for " + i);
-				imagePath = UPLOAD_DIR + "image_page_" + i + ".png"; // 각 페이지 마다 임시이미지 파일 생성. 
-				System.out.println("Image directory" + imagePath); 
-				
-				try (PDDocument document = PDDocument.load(new File(fullPath))) { 
+				imagePath = UPLOAD_DIR + "image_page_" + i + ".png"; // 각 페이지 마다 임시이미지 파일 생성.
+				System.out.println("Image directory" + imagePath);
+
+				try (PDDocument document = PDDocument.load(new File(fullPath))) {
 					PDFRenderer pdfRenderer = new PDFRenderer(document);
-					BufferedImage image = pdfRenderer.renderImageWithDPI(i-1, 300); // 페이지, 300은 이미지 렌더링의 수준. 300은 높은수준.
+					BufferedImage image = pdfRenderer.renderImageWithDPI(i - 1, 300); // 페이지, 300은 이미지 렌더링의 수준. 300은
+																						// 높은수준.
 					ImageIO.write(image, "png", new File(imagePath)); // 이미지를 imagePath의 디렉토리에 image_page 이름으로 저장.
 					System.out.println("Saving image done");
-				} 
-				catch (IOException e) { //Handle the exception appropriately 
-					e.printStackTrace(); 
+				} catch (IOException e) { // Handle the exception appropriately
+					e.printStackTrace();
 				}
-				
+
 				File imgFile = new File(imagePath);
 				pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
 				result = result + pageText + "\n";
-				
-				imgFile.delete(); 
+
+				imgFile.delete();
 			}
 		}
 		System.out.println("debug1");
@@ -146,6 +157,64 @@ public class OcrSampleController {
 			}
 		}
 
+		return "ocr/ocrSampleList";
+	}
+
+	@RequestMapping(value = "/cropTess.do", method = RequestMethod.POST)
+	public String cropTess(@RequestParam String cropImageURL,String fileName, String language, Model model)
+			throws IOException, ServletException {
+
+		String UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
+		String fullPath = null;
+		String[] imageParts = cropImageURL.split(",");
+        String base64Image = imageParts[1];
+        byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+        
+		System.out.println(UPLOAD_DIR+"\n");
+		
+		System.out.println("The image url is" + cropImageURL);
+		
+        fullPath = UPLOAD_DIR + fileName;
+        
+        try {
+            // Write the decoded data to a file
+            try (FileOutputStream fos = new FileOutputStream(new File(fullPath))) {
+                fos.write(imageBytes);
+            }
+
+            System.out.println("Image successfully saved to: " + fullPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+		String prompt = ""; // ChatGPT에게 보낼 명령어
+		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
+		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
+		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		System.out.println("Doing tess!"); 
+		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
+		
+		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
+		
+		System.out.println(result);
+		System.out.println(preprocessingResult);
+		System.out.println(fileName);
+		System.out.println(language);
+		/* Saves results to webpage model */
+		model.addAttribute("scan", result);
+		model.addAttribute("result", preprocessingResult);
+		model.addAttribute("fileName", fileName);
+		model.addAttribute("lang", language);
+		System.out.println(model.toString());
+		if (fullPath != null) { // remove temporary file
+			File doDelete = new File(fullPath);
+			if (doDelete.exists()) {
+				doDelete.delete();
+			}
+		}
+		
 		return "ocr/ocrSampleList";
 	}
 
@@ -329,57 +398,57 @@ public class OcrSampleController {
 
 //Custom implementation of MultipartFile for in-memory file representation
 class InMemoryMultipartFile implements MultipartFile {
- private final byte[] content;
- private final String name;
- private final String originalFilename;
- private final String contentType;
+	private final byte[] content;
+	private final String name;
+	private final String originalFilename;
+	private final String contentType;
 
- public InMemoryMultipartFile(byte[] content, String name) {
-     this.content = content;
-     this.name = name;
-     this.originalFilename = name;
-     this.contentType = "image/png"; // Set the appropriate content type
- }
+	public InMemoryMultipartFile(byte[] content, String name) {
+		this.content = content;
+		this.name = name;
+		this.originalFilename = name;
+		this.contentType = "image/png"; // Set the appropriate content type
+	}
 
- @Override
- public String getName() {
-     return name;
- }
+	@Override
+	public String getName() {
+		return name;
+	}
 
- @Override
- public String getOriginalFilename() {
-     return originalFilename;
- }
+	@Override
+	public String getOriginalFilename() {
+		return originalFilename;
+	}
 
- @Override
- public String getContentType() {
-     return contentType;
- }
+	@Override
+	public String getContentType() {
+		return contentType;
+	}
 
- @Override
- public boolean isEmpty() {
-     return content.length == 0;
- }
+	@Override
+	public boolean isEmpty() {
+		return content.length == 0;
+	}
 
- @Override
- public long getSize() {
-     return content.length;
- }
+	@Override
+	public long getSize() {
+		return content.length;
+	}
 
- @Override
- public byte[] getBytes() throws IOException {
-     return content;
- }
+	@Override
+	public byte[] getBytes() throws IOException {
+		return content;
+	}
 
- @Override
- public InputStream getInputStream() throws IOException {
-     return new ByteArrayInputStream(content);
- }
+	@Override
+	public InputStream getInputStream() throws IOException {
+		return new ByteArrayInputStream(content);
+	}
 
- @Override
- public void transferTo(File dest) throws IOException, IllegalStateException {
-     Files.write(dest.toPath(), content);
- }
- 
- // Implement other methods of the MultipartFile interface as needed
+	@Override
+	public void transferTo(File dest) throws IOException, IllegalStateException {
+		Files.write(dest.toPath(), content);
+	}
+
+	// Implement other methods of the MultipartFile interface as needed
 }
