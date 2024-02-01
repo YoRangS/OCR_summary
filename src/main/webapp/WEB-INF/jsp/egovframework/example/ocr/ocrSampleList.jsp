@@ -14,11 +14,14 @@
 <head>
 <meta charset="UTF-8">
 <title>OCR Scan</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.6.1/cropper.min.css"
+        integrity="sha512-hvNR0F/e2J7zPPfLC9auFe3/SE0yG4aJCOd/qxew74NN7eyiSKjr7xJJMu1Jy2wf7FXITpWS1E/RY8yzuXN7VA=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 	<div id="main">
 		<section>
-		<form action="/tess.do" method="POST" enctype="multipart/form-data">
+		<form action="/tess.do" method="POST" enctype="multipart/form-data" id="imageForm">
 		    <fieldset>
 		        <legend>입력</legend>
 		        <label for="language">텍스트 추출에 사용할 언어를 선택해주세요:</label>
@@ -27,9 +30,17 @@
 		            <option value="eng">영어</option>
 		        </select>
 		        <p>
-					파일 선택: <input id="fileUpload" type="file" name="file" /><br>
-		            <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br>
-		            <script>
+		        <button type="button" onclick="redirectToOcrCropPage();">이미지 자르기</button>
+		        <br> ※이미지 자르기를 하려고 할 경우 파일을 새로 입력하여야 합니다
+		        <script>
+				    function redirectToOcrCropPage() {
+				        // Redirect to the ocrCrop.jsp page
+				        window.location.href = "/goToCrop.do";
+				    }
+				</script>
+		        <p>
+					파일 선택: <input id="fileUpload" type="file" name="file"/><br>
+					<script>
 		                const fileInput = document.getElementById("fileUpload");
 		
 		                const handleFiles = (e) => {
@@ -45,6 +56,9 @@
 		
 		                fileInput.addEventListener("change", handleFiles);
 		            </script>
+		            <img id="previewImg" width="300" alt="이미지 영역" /> <br> <br>
+            		<button type="button" id="saveBtn" style="display:none">Save</button>
+		            <input type="hidden" type="text" id="croppedImage" name="file">
 		            <br>
 		            <br>
 		            <label>추출 방식 선택:</label>

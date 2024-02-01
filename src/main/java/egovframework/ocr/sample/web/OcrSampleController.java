@@ -2,12 +2,14 @@ package egovframework.ocr.sample.web;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.List;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
@@ -49,11 +51,16 @@ public class OcrSampleController {
 	@Autowired
     private ServletContext servletContext;
 	
-	@RequestMapping(value = "/tess.do", method = RequestMethod.GET)
+	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
 		return "ocr/ocrSampleList";
 	}
 
+	@RequestMapping(value = "/goToCrop.do", method = RequestMethod.GET) // 이미지 자르기 페이지로 가기
+	public String goToCrop() {
+		return "ocr/ocrCrop";
+	}
+	
 	/**
 	 * tess.do이름의 POST 타입 호출을 받아 텍스트 추출
 	 * 
@@ -67,9 +74,11 @@ public class OcrSampleController {
 	@RequestMapping(value = "/tess.do", method = RequestMethod.POST)
 	public String tess(@RequestParam MultipartFile file, String language, Model model, String tessType,
 			String startPage, String endPage) throws IOException, ServletException {
+		
 		String UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
 		String fullPath = null;
 		System.out.println(UPLOAD_DIR);
+		
 		if (!file.isEmpty()) {
 			fullPath =  UPLOAD_DIR + file.getOriginalFilename();
 			file.transferTo(new File(fullPath));
@@ -131,23 +140,95 @@ public class OcrSampleController {
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
-																	// being lost
+		
+		addTextExtract(fileName, language, model, result, preprocessingResult);
+		
+		removeFile(fullPath);
+
+		return "ocr/ocrSampleList";
+	}
+
+	/**
+	 * cropTess.do이름의 POST 타입 호출을 받아 텍스트 추출
+	 * 
+	 * @param cropImageURL  원본에서 자른 이미지를 URL 형태로 받아들여 이후 재조립
+	 * @param fileName 원본 파일의 이름
+	 * @param lang  오타수정에 사용할 언어
+	 * @param model 페이지모델
+	 * @return ocrSampleList 화면
+	 * @see ocrTsseract.java
+	 * @see UseGPT.useGPT
+	 */
+	@RequestMapping(value = "/cropTess.do", method = RequestMethod.POST)
+	public String cropTess(@RequestParam String cropImageURL,String fileName, String language, Model model)
+			throws IOException, ServletException {
+
+		String UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
+		String fullPath = null;
+		String[] imageParts = cropImageURL.split(",");
+        String base64Image = imageParts[1];
+        byte[] imageBytes = Base64.getDecoder().decode(base64Image);
+        
+		System.out.println(UPLOAD_DIR+"\n");
+		
+		System.out.println("The image url is" + cropImageURL);
+		
+        fullPath = UPLOAD_DIR + fileName;
+        
+        try {
+            // Write the decoded data to a file
+            try (FileOutputStream fos = new FileOutputStream(new File(fullPath))) {
+                fos.write(imageBytes);
+            }
+
+            System.out.println("Image successfully saved to: " + fullPath);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        
+		String prompt = ""; // ChatGPT에게 보낼 명령어
+		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
+		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
+		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		System.out.println("Doing tess!"); 
+		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
+		
+		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
+		
+		System.out.println(result);
+		System.out.println(preprocessingResult);
+		System.out.println(fileName);
+		System.out.println(language);
+		
+		addTextExtract(fileName, language, model, result, preprocessingResult);
+		
+		System.out.println(model.toString());
+		
+		removeFile(fullPath);
+		
+		return "ocr/ocrSampleList";
+	}
+
+	private void addTextExtract(String fileName, String language, Model model, String result,
+			String preprocessingResult) {
 		/* Saves results to webpage model */
 		model.addAttribute("scan", result);
 		model.addAttribute("result", preprocessingResult);
 		model.addAttribute("fileName", fileName);
 		model.addAttribute("lang", language);
-		
+	}
+	
+	private void removeFile(String fullPath) {
 		if (fullPath != null) { // remove temporary file
 			File doDelete = new File(fullPath);
 			if (doDelete.exists()) {
 				doDelete.delete();
 			}
 		}
-
-		return "ocr/ocrSampleList";
 	}
-
+	
 	/**
 	 * summary.do이름의 POST 타입 호출을 받아 텍스트 요약
 	 * 
@@ -166,11 +247,13 @@ public class OcrSampleController {
 		String summaryText = ""; // 요약 텍스트를 보관
 
 		int dotIndex = fileName.lastIndexOf('.');
+		
 		if (dotIndex != -1) {
 			fileTrim = fileName.substring(0, dotIndex); // sample.png, sample.jpg와 같이 .을 기준으로 점 이전의 텍스트만 보관
 		} else {
 			System.out.println("파일에 . 이 존재하지 않습니다");
 		}
+		
 		System.out.println("scanResult: " + scanResult);
 		summaryText = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
 		summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
@@ -298,7 +381,7 @@ public class OcrSampleController {
 
 		return "ocr/ocrTag";
 	}
-
+	
 	private static String convertToLink(String jsonString) {
 		// JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
 		String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
