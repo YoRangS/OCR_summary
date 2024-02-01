@@ -31,7 +31,8 @@ public class OcrTesseract {
 	
 	 public static String ocrTess(String imgName, String lang, String filePath) {
 	     Tesseract tesseract = new Tesseract();  // JNA Interface Mapping
-	     tesseract.setDatapath("C:/Program Files/Tesseract-OCR/tessdata"); // replace with your tessdata path
+	     //tesseract.setDatapath("/usr/local/Cellar/tesseract/5.3.4/share/tessdata"); // replace with your tessdata path
+	     tesseract.setDatapath("/usr/local/Cellar/tesseract"); // replace with your tessdata path
 
 	     tesseract.setTessVariable("user_defined_dpi", "300"); // sets dpi to avoid warning message
 	     String imageLocation = filePath + imgName;

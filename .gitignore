@@ -14,7 +14,7 @@ local.properties
 .loadpath
 .recommenders
 .target/
-
+.DS_STORE
 # ignore properties file
 config.properties
 
