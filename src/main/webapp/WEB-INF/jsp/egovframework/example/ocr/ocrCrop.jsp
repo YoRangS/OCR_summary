@@ -127,6 +127,7 @@
 	        document.getElementById('cropImageURL').value = croppedImageDataURL;
 	        cropper.destroy();
 	        saveBtn.style="display:none"
+	        cropBtn.style="display:block"
 	    } else {
 	        console.log('Canvas is null. Please adjust cropping parameters.');
 	    }
