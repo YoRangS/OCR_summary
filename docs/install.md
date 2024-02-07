@@ -1,8 +1,11 @@
 # 설치 가이드
 
-필요 소프트웨어
+<!-- 필요 소프트웨어 -->
+
+## 목차
 
 - [설치 가이드](#설치-가이드)
+  - [목차](#목차)
   - [1. eGovFramework 3.10 설치 및 실행](#1-egovframework-310-설치-및-실행)
     - [Window 환경](#window-환경)
     - [Mac 환경](#mac-환경)
@@ -11,6 +14,10 @@
   - [3. JDK 1.8 설치](#3-jdk-18-설치)
   - [4. OpenAI API 키 발급](#4-openai-api-키-발급)
   - [5. 프로젝트 가져오기](#5-프로젝트-가져오기)
+    - [Git을 통해 가져오기](#git을-통해-가져오기)
+    - [Zip 파일을 통해 가져오기](#zip-파일을-통해-가져오기)
+    - [eGovFramework에 프로그램 Import](#egovframework에-프로그램-import)
+    - [프로젝트 초기세팅](#프로젝트-초기세팅)
   - [6. Tesseract OCR 5.3.x 설치](#6-tesseract-ocr-53x-설치)
     - [Window 환경](#window-환경-1)
     - [Mac 환경](#mac-환경-1)
@@ -76,19 +83,42 @@ Menu > API Keys > Create new secret key > 키 값 복사
 
 ## 5. 프로젝트 가져오기
 
-해당 링크에서 zip파일을 다운
+### Git을 통해 가져오기
 
-link
+만약 Git이 없다면 아래 링크에서 다운받는다
 
-zip파일 압축 해제 후 프로젝트 파일 압축 해제
+https://git-scm.com/downloads
 
-**eGovFrameDev-3.10.0-64bit\workspace 에 압축해제 하는 것을 추천**
+git bash나 cmd창에서 아래 코드를 작성한다.
 
-eGovFramework 실행 후 File > Open Projects From File System > Directory를 눌러 해당 폴더 선택
+```Bash
+cd (프로젝트 설치할 파일 경로)
+git clone https://github.com/YoRangS/OCR_summary.git
+```
+
+**프로젝트 설치할 파일 경로는 eGovFrameDev-3.10.0-64bit\workspace 권장**
+
+### Zip 파일을 통해 가져오기
+
+[Github 링크](https://github.com/YoRangS/OCR_summary)에서 Code 클릭 > Download ZIP 클릭
+
+![alt text](image-16.png)
+
+다운받은 ZIP파일 압축해제 한다.
+
+**압축해제 경로는 eGovFrameDev-3.10.0-64bit\workspace 권장**
+
+### eGovFramework에 프로그램 Import
+
+eGovFramework 실행 후 File > Open Projects From File System 클릭
 
 ![alt text](image-1.png)
 
+Directory를 눌러 해당 폴더 선택 > Finish 클릭
+
 ![alt text](image-2.png)
+
+### 프로젝트 초기세팅
 
 src/main/java/egovframework.ocr.sample.web 폴더에서 KeyValue.java 대신 KeyValue_tmp.java 파일이 존재
 
@@ -213,7 +243,11 @@ Servers 폴더의 Tomcat 9.0 폴더에서 server.xml 열기
 
 아래와 같은 오류가 발생할 경우 다음 과정을 따른다.
 
-(성준이 데스크탑에 있는 스크린샷)
+```
+2024-01-30 16:49:02,057 ERROR [net.sourceforge.tess4j.util.PdfGsUtilities] Unable to load library 'gs':
+dlopen(libgs.dylib, 0x0009): tried: 'libgs.dylib' (no such file), '/System/Volumes/Preboot/Cryptexes/OSlibgs.dylib' (no such file), '/Library/Java/JavaVirtualMachines/jdk-1.8.jdk/Contents/Home/bin/./libgs.dylib' (no such file), '/usr/lib/libgs.dylib' (no such file, not in dyld cache), 'libgs.dylib' (no such file), '/usr/lib/libgs.dylib' (no such file, not in dyld cache)
+...
+```
 
 라이브러리에 tess4j.jar를 추가합니다.
 
