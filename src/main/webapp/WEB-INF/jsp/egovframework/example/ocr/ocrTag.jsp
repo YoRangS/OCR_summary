@@ -21,7 +21,7 @@
 			<legend>태그 추출 결과</legend>
 			<form action="/purpose.do" method="POST">
 				 언어: <input type="text" id="lang" name="lang" value=${lang}>
-				<p>kor = 한글, eng = 영어
+				<p>kor = 한글, eng = 영어, kor+eng = 한글+영어
 				원본 텍스트<br>
 				<textarea id="sr" name="scanResult" cols="150" rows="20">${result}</textarea>
 				<br>태그<br>

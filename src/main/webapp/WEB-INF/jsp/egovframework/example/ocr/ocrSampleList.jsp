@@ -26,6 +26,7 @@
 		        <legend>입력</legend>
 		        <label for="language">텍스트 추출에 사용할 언어를 선택해주세요:</label>
 		        <select id="language" name="language">
+		        	<option value="kor+eng">한국어+영어</option>
 		            <option value="kor">한국어</option>
 		            <option value="eng">영어</option>
 		        </select>
