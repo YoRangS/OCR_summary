@@ -12,6 +12,7 @@ import org.apache.commons.lang3.SystemUtils;
 public class OcrTesseract {
 
 	private static String showText(Tesseract tesseract, String imagelocation, String language) {
+		//System.out.println("The language is " + language);
 		tesseract.setLanguage(language);
 		File imageFile = new File(imagelocation);
 		System.out.println(imagelocation);
@@ -22,7 +23,7 @@ public class OcrTesseract {
 			//System.out.println(result);
 			result = _result.replaceAll("\\s+", " "); // ‘\s‘ to match a whitespace character. Remove unnecessary enters white spaces
 			result = result.replaceAll("\"", ""); // remove double quotes in string.
-//			System.out.println(result);
+			System.out.println(result);
 			return result;
 		} catch (TesseractException e) {
 	         System.err.println(e.getMessage());
@@ -45,10 +46,6 @@ public class OcrTesseract {
 	     tesseract.setTessVariable("user_defined_dpi", "300"); // sets dpi to avoid warning message
 	     String imageLocation = filePath + imgName;
 	     
-	     /* TODO: 언어 인식 기능 넣기 */
-	     String language = lang;
-	     
-	     
-	     return showText(tesseract, imageLocation, language);
+	     return showText(tesseract, imageLocation, lang);
 	   }
 }

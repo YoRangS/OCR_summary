@@ -91,7 +91,7 @@ public class OcrSampleController {
 		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
 		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
-
+		
 		int start = 1, end = 1; // 페이지의 시작과 마무리
 		String imagePath = "";
 		
@@ -137,6 +137,7 @@ public class OcrSampleController {
 			}
 		}
 		
+		language = languageFirst(language);
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
@@ -191,8 +192,10 @@ public class OcrSampleController {
 		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
 		System.out.println("Doing tess!"); 
+		
 		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
 		
+		language = languageFirst(language); // kor+eng의 경우 prompt를 kor로 하기 위함
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
@@ -229,6 +232,14 @@ public class OcrSampleController {
 		}
 	}
 	
+	private String languageFirst(String language) {
+		int plusIndex = language.indexOf('+');
+		if (plusIndex != -1) { // '+'가 발견된 경우
+			language = language.substring(0, plusIndex); // kor+eng의 경우 kor만 고려. prompt를 사용할 언어와의 상호작용을 위함
+		}
+		return language;
+	}
+	
 	/**
 	 * summary.do이름의 POST 타입 호출을 받아 텍스트 요약
 	 * 
@@ -242,6 +253,7 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/summary.do", method = RequestMethod.POST)
 	public String summary(@RequestParam String scanResult, String fileName, String lang, Model model) {
+		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String prompt = "SUMMARY_" + lang.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
 		String fileTrim = fileName; // .png등 파일 포멧을 떼고 저장하기 위함
 		String summaryText = ""; // 요약 텍스트를 보관
@@ -320,6 +332,7 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/tag.do", method = RequestMethod.POST)
 	public String vision(@RequestParam String scanResult, String lang, Model model) {
+		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String jsonTag = ""; // json 형식의 요약 태그를 보관
 
@@ -351,6 +364,7 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/purpose.do", method = RequestMethod.POST)
 	public String purpose(@RequestParam String scanResult, String lang, String jsonTag, Model model) {
+		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String prompt = "TOP_TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
 		String purpose = ""; // 태그를 기반으로 한 텍스트의 의도 추출

@@ -98,6 +98,7 @@ public class OcrRestController {
         
         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
         
+        language = languageFirst(language);
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
         preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
@@ -142,6 +143,7 @@ public class OcrRestController {
 
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
+         language = languageFirst(language);
          prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
@@ -234,6 +236,14 @@ public class OcrRestController {
         return summaryText;
     }
     
+    private String languageFirst(String language) {
+		int plusIndex = language.indexOf('+');
+		if (plusIndex != -1) { // '+'가 발견된 경우
+			language = language.substring(0, plusIndex); // kor+eng의 경우 kor만 고려. prompt를 사용할 언어와의 상호작용을 위함
+		}
+		return language;
+	}
+    
     /**
      * tag 이름의 POST 타입 호출을 받아 테그 추출 및 의도 추출
      * @param scanResult 태그 및 의도 추출을 위한 텍스트 원문
@@ -246,6 +256,7 @@ public class OcrRestController {
      */
      @PostMapping("/tag")
      public ResponseEntity<?> vision(@RequestParam("scanResult") String scanResult, @RequestParam("language") String language) throws IllegalStateException, IOException {
+    	 language = languageFirst(language); // kor+eng와 같은 형태에서 앞의 kor만 사용
     	 String prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
          String jsonTag = ""; // json 형식의 요약 태그를 보관
          String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
@@ -285,6 +296,7 @@ public class OcrRestController {
          
          result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
          
+         language = languageFirst(language);  // kor+eng와 같은 형태에서 앞의 kor만 사용
          prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
@@ -334,6 +346,7 @@ public class OcrRestController {
          
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
+         language = languageFirst(language);  // kor+eng와 같은 형태에서 앞의 kor만 사용
          prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
