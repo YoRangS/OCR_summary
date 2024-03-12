@@ -72,6 +72,13 @@
     </repositories>
 
 	<dependencies>
+		<dependency>
+		<!-- docx->pdf 변환을 위한 라이브러리 -->
+   			<groupId>fr.opensagres.xdocreport</groupId>
+    		<artifactId>fr.opensagres.poi.xwpf.converter.pdf</artifactId>
+    		<version>2.0.2</version>
+		</dependency>
+
 		<!-- 표준프레임워크 실행환경 -->
         <dependency>
 		    <groupId>egovframework.rte</groupId>

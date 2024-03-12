@@ -1,18 +1,14 @@
 package egovframework.ocr.sample.web;
 
-import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Date;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
@@ -20,6 +16,7 @@ import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,15 +27,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.kennycason.kumo.CollisionMode;
-import com.kennycason.kumo.WordCloud;
-import com.kennycason.kumo.WordFrequency;
-import com.kennycason.kumo.bg.CircleBackground;
-import com.kennycason.kumo.font.scale.SqrtFontScalar;
-import com.kennycason.kumo.palette.ColorPalette;
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.service.OpenAiService;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
+
 
 /**
 * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -84,6 +75,27 @@ public class OcrRestController {
     * @see OcrTesseract.ocrTess
     * @see UseGPT.useGPT
     */
+    
+    @GetMapping("/testDoc")
+    public String convertDoc() {
+    	System.out.println( "Starting conversion!!!" );
+    	ConvertToPDF("C:/Users/seong/OneDrive/Desktop/test.docx", "C:/Users/seong/OneDrive/Desktop/test.pdf");
+        System.out.println( "Ending conversion!!!" );
+    	
+    	return "converted doc to pdf";
+    }
+    public void ConvertToPDF(String docPath, String pdfPath) {
+        try {
+            InputStream doc = new FileInputStream(new File(docPath));
+            XWPFDocument document = new XWPFDocument(doc);
+            PdfOptions options = PdfOptions.create();
+            OutputStream out = new FileOutputStream(new File(pdfPath));
+            PdfConverter.getInstance().convert(document, out, options);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
+      }
+    
     @PostMapping("/tess_sum")
     public ResponseEntity<?> tess(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
         //MultipartFile file = (MultipartFile) input.get("file");
