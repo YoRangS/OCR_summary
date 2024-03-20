@@ -26,8 +26,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.groupdocs.conversion.Converter;
-import com.groupdocs.conversion.options.convert.PdfConvertOptions;
+import com.aspose.cells.Shape;
+import com.aspose.cells.Workbook;
+import com.aspose.cells.Worksheet;
+import com.aspose.slides.Presentation;
+import com.aspose.slides.SaveFormat;
 
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
@@ -98,10 +101,15 @@ public class OcrSampleController {
             	fullPath = docToPdf(fullPath);
             }
             else if (extension.equals("pptx") || extension.equals("ppt")) {
-            	
+            	fullPath = pptToPdf(fullPath);
             }
             else if (extension.equals("xlsx") || extension.equals("xls")) {
-            	
+            	try {
+					fullPath = xslToPdf(fullPath);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
             }
             else if (extension.equals("hwp")) {
             	
@@ -463,10 +471,31 @@ public class OcrSampleController {
 	    return pdfPath;
 	}
 	
-	private static void xslToPdf(MultipartFile file) {
-			
-	}
-	private static void pptToPdf(MultipartFile file) {
+	private String xslToPdf(String xslPath) {
+		String pdfPath = null;
+		Workbook workbook;
+		try {
+			System.out.println("start");
+			workbook = new Workbook(xslPath);
+			pdfPath = xslPath.substring(0, xslPath.lastIndexOf('.')) + ".pdf";
+			System.out.println("pdfPath : " + pdfPath);
+//			Worksheet ws = workbook.getWorksheets().get(0);
+//			Shape sh = ws.getShapes().get(0);
+//			sh.getFill().getTextureFill().setTiling(true);
+			workbook.save(pdfPath);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		
+		return pdfPath;
+	}
+	private String pptToPdf(String pptPath) {
+		String pdfPath = null;
+		Presentation presentation = new Presentation(pptPath);
+		pdfPath = pptPath.substring(0, pptPath.lastIndexOf('.')) + ".pdf";
+		presentation.save(pdfPath, SaveFormat.Pdf);
+		
+		return pdfPath;
 	}
 }
