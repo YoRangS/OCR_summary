@@ -2,15 +2,14 @@ package egovframework.ocr.sample.web;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.time.Duration;
-import java.util.ArrayList;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Base64;
-import java.util.List;
+
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -18,18 +17,23 @@ import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.util.ResourceUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.service.OpenAiService;
+import com.aspose.cells.Shape;
+import com.aspose.cells.Workbook;
+import com.aspose.cells.Worksheet;
+import com.aspose.slides.Presentation;
+import com.aspose.slides.SaveFormat;
+
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
 /**
  * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -85,6 +89,32 @@ public class OcrSampleController {
 		} else {
 			System.out.println("isEmpty!");
 		}
+		
+		System.out.println("fullPath: " + fullPath);
+		System.out.println(file.getOriginalFilename());
+		
+		String originalFilename = file.getOriginalFilename();
+        if (originalFilename != null && !originalFilename.isEmpty()) {
+            String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
+            
+            if (extension.equals("docx") || extension.equals("doc")) {
+            	fullPath = docToPdf(fullPath);
+            }
+            else if (extension.equals("pptx") || extension.equals("ppt")) {
+            	fullPath = pptToPdf(fullPath);
+            }
+            else if (extension.equals("xlsx") || extension.equals("xls")) {
+            	try {
+					fullPath = xslToPdf(fullPath);
+				} catch (Exception e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+            }
+            else if (extension.equals("hwp")) {
+            	
+            }
+        }
 
 		String fileName = ""; // 파일의 이름
 		String prompt = ""; // ChatGPT에게 보낼 명령어
@@ -110,7 +140,9 @@ public class OcrSampleController {
 		System.out.println("Tess type:" + tessType);
 		if ("tess".equals(tessType)) { // 기본값으로 행동할 경우
 			System.out.println("Doing tess!");
-			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
+			System.out.println(fullPath.substring(fullPath.lastIndexOf("//") + 1));
+			result = OcrTesseract.ocrTess(fullPath.substring(fullPath.lastIndexOf("\\") + 1), language, UPLOAD_DIR);
+//			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
 		} else if ("tessLimit".equals(tessType)) { // 기본값으로 행동하지 않을 경우
 			System.out.println("Not doing tess!");
 			
@@ -420,5 +452,50 @@ public class OcrSampleController {
 		}
 
 		return "https://quickchart.io/wordcloud?text=" + queryString.toString() + "&useWordList=true";
+	}
+	
+	public String docToPdf(String docPath) {
+		String pdfPath = null;
+	    try {
+	        InputStream doc = new FileInputStream(new File(docPath));
+	        XWPFDocument document = new XWPFDocument(doc);
+	        PdfOptions options = PdfOptions.create();
+	        
+	        pdfPath = docPath.substring(0, docPath.lastIndexOf('.')) + ".pdf";
+	        
+	        OutputStream out = new FileOutputStream(new File(pdfPath));
+	        PdfConverter.getInstance().convert(document, out, options);
+	    } catch (IOException ex) {
+	        System.out.println(ex.getMessage());
+	    }
+	    return pdfPath;
+	}
+	
+	private String xslToPdf(String xslPath) {
+		String pdfPath = null;
+		Workbook workbook;
+		try {
+			System.out.println("start");
+			workbook = new Workbook(xslPath);
+			pdfPath = xslPath.substring(0, xslPath.lastIndexOf('.')) + ".pdf";
+			System.out.println("pdfPath : " + pdfPath);
+//			Worksheet ws = workbook.getWorksheets().get(0);
+//			Shape sh = ws.getShapes().get(0);
+//			sh.getFill().getTextureFill().setTiling(true);
+			workbook.save(pdfPath);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		return pdfPath;
+	}
+	private String pptToPdf(String pptPath) {
+		String pdfPath = null;
+		Presentation presentation = new Presentation(pptPath);
+		pdfPath = pptPath.substring(0, pptPath.lastIndexOf('.')) + ".pdf";
+		presentation.save(pdfPath, SaveFormat.Pdf);
+		
+		return pdfPath;
 	}
 }

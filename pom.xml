@@ -69,6 +69,18 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
+        
+        <repository>
+		    <id>AsposeJavaAPI</id>
+		    <name>Aspose Java API</name>
+		    <url>https://repository.aspose.com/repo/</url>
+		</repository>
+		
+		<repository>
+		    <id>AsposeJavaAPI</id>
+		    <name>Aspose Java API</name>
+		    <url>https://releases.aspose.com/java/repo/</url>
+		</repository>
     </repositories>
 
 	<dependencies>
@@ -232,6 +244,28 @@
 		    <groupId>com.kennycason</groupId>
 		    <artifactId>kumo-core</artifactId>
 		    <version>1.28</version>
+		</dependency>
+		
+		<dependency>
+	      <!-- docx->pdf 변환을 위한 라이브러리 -->
+	            <groupId>fr.opensagres.xdocreport</groupId>
+	          <artifactId>fr.opensagres.poi.xwpf.converter.pdf</artifactId>
+	          <version>2.0.2</version>
+	      </dependency>
+	      
+	    <!-- xlsx->pdf 변환을 위한 라이브러리 -->
+	    <dependency>
+		    <groupId>com.aspose</groupId>
+		    <artifactId>aspose-cells</artifactId>
+		    <version>24.3</version>
+		</dependency>
+		
+		<!-- pptx->pdf 변환을 위한 라이브러리 -->
+		<dependency>
+		    <groupId>com.aspose</groupId>
+		    <artifactId>aspose-slides</artifactId>
+		    <version>23.7.1</version>
+		    <classifier>jdk16</classifier>
 		</dependency>
 	</dependencies>
 
