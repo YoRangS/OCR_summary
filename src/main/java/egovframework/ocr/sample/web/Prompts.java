@@ -16,6 +16,7 @@ import java.util.HashMap;
 public class Prompts {
     /*ChatGPT에 사용될 명령어들*/
     private static String SUMMARY_ENG = "Summarize the text in maximum 5 lines.";
+    private static String SUMMARY_BLOCK_ENG = "Summarize the text in [n] characters.";
     private static String FIX_TYPO_ENG = "Fix the typo in the text if there are any and then show the text regardless of typo.";
     private static String TAG_ENG = "The following is the text we want to get the tags for."
     		+ " From the text extract the keywords and their frequency and show them in the form of json format {Example: 3} without other explanation."
@@ -44,6 +45,7 @@ public class Prompts {
     		"21700343@handong.ac.kr | dncndj@gmail.com | rwei323@naver.com | ogoid@hanmail.net";
     
     private static String SUMMARY_KOR = "해당 글을 5줄 이내로 요약해주세요. 엔터키도 적당히 섞어주세요.";
+    private static String SUMMARY_BLOCK_KOR = "해당 글을 [n]글자 이내로 요약해주세요. 엔터키도 적당히 섞어주세요.";
     private static String FIX_TYPO_KOR = "해당 텍스트를 그대로 출력해주세요. 오타가 있을 경우 수정하여 출력하고, 오타를 어떻게 고쳤는지에 대해 설명을 생략해주세요.";
     private static String TAG_KOR = "다음 문장은 주요 태그를 추출하려고 하는 텍스트 전문입니다."
     		+ " 아래 텍스트에서 중요한 키워드와 빈도수를 같이 추출한 뒤 다른 설명 없이 {단어: 3} 와 같이 json 형식으로만 보여주세요. \"\" 를 제외한 문장 부호는 태그에 추가하면 안됩니다."
@@ -69,12 +71,14 @@ public class Prompts {
     private static HashMap<String, String> promptMap = new HashMap<>(); // 명령어들을 모이기 위한 해시맵
     static { // 해시맵에 명령어들 추가
         promptMap.put("SUMMARY_ENG", SUMMARY_ENG);
+        promptMap.put("SUMMARY_BLOCK_ENG", SUMMARY_BLOCK_ENG);
         promptMap.put("FIX_TYPO_ENG", FIX_TYPO_ENG);
         promptMap.put("TAG_ENG", TAG_ENG);
         promptMap.put("TOP_TAG_ENG", TOP_TAG_ENG);
         promptMap.put("PUR_ENG", PUR_ENG);
         promptMap.put("DETECT_SEN_ENG", DETECT_SEN_ENG);
         promptMap.put("SUMMARY_KOR", SUMMARY_KOR);
+        promptMap.put("SUMMARY_BLOCK_KOR", SUMMARY_BLOCK_KOR);
         promptMap.put("FIX_TYPO_KOR", FIX_TYPO_KOR);
         promptMap.put("TAG_KOR", TAG_KOR);
         promptMap.put("TOP_TAG_KOR", TOP_TAG_KOR);

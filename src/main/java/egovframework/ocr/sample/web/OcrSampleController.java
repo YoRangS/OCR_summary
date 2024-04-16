@@ -172,10 +172,9 @@ public class OcrSampleController {
 		
 		System.out.println("result: " + result);
 		
-		language = languageFirst(language);
-		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
-		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
+		language = languageFirst(language).toUpperCase();
+		preprocessingResult = fixTypo(language, result);
+		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
 		System.out.println("preprocessingResult: " + preprocessingResult);
 		System.out.println("prompt: " + Prompts.getPrompt(prompt));
 		afterDetectResult = UseGPT.useGPT(Prompts.getPrompt(prompt), preprocessingResult);
@@ -186,6 +185,43 @@ public class OcrSampleController {
 		removeFile(fullPath);
 
 		return "ocr/ocrSampleList";
+	}
+
+	private String fixTypo(String language, String result) {
+		String prompt, blockText, blockSum, mergeResult = "", blockOutputNum, preprocessingResult = "";
+		String bigText = result; // 전체 텍스트. 텍스트 추출의 결과를 입력값으로 받음
+		int charNum, blockNum = 0, blockStrNum, i;
+		int maxToken = 16000; // GPT3.5 Turbo 기준 입력 최대 토큰 16,385
+		
+		charNum = result.length();
+		System.out.println("charNum: " + charNum);
+		blockNum = (charNum/maxToken) + 1; // 텍스트 글자수 / 전체 입력 토큰의 반올림을 블럭의 갯수로 정함
+		System.out.println("blockNum: " + blockNum);
+		switch (language) {
+        case "ENG":
+        	blockNum = (blockNum / 3) + 1; // 영어의 경우 한 토큰당 3~4개 알파벳이 입력 가능하므로 블럭 갯수를 줄임
+            break;
+		}
+		blockStrNum = charNum / blockNum; // 한 블록당 글자의 수
+		System.out.println("blockStrNum: " + blockStrNum);
+		blockOutputNum = " [" + maxToken / blockNum + "]"; // 각 블럭 선요약의 텍스트 길이. 토큰수/블럭 갯수
+		System.out.println("blockOutputNum: " + blockOutputNum);
+		
+		for (i = 0; i < blockNum; i++) {
+			blockText = bigText.substring(0, blockStrNum);
+			System.out.println("blockText: " + blockText);
+			bigText = bigText.substring(blockStrNum); // 전체 텍스트 중 블럭에 해당되지 않는 텍스트를 다시 넣음
+			
+			prompt = "SUMMARY_BLOCK_" + language;
+			System.out.println("prompt: " + prompt + blockOutputNum);
+			System.out.println("Promt: " + Prompts.getPrompt(prompt).concat(blockOutputNum));
+			blockSum = UseGPT.useGPT(Prompts.getPrompt(prompt).concat(blockOutputNum), blockText); // 블럭에 대한 요약을 받기
+			mergeResult = mergeResult.concat(blockSum); // 블럭의 요약내용 합치기
+		}
+		System.out.println("mergeResult: " + mergeResult);
+		prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
+		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), mergeResult); // text after using ChatGPT to fix typos
+		return preprocessingResult;
 	}
 
 	/**
@@ -236,8 +272,7 @@ public class OcrSampleController {
 		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
 		
 		language = languageFirst(language); // kor+eng의 경우 prompt를 kor로 하기 위함
-		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		preprocessingResult = fixTypo(language, result);
 		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
 		afterDetectResult = UseGPT.useGPT(Prompts.getPrompt(prompt), preprocessingResult);
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
