@@ -121,6 +121,7 @@ public class OcrSampleController {
 		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
 		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
 		
 		int start = 1, end = 1; // 페이지의 시작과 마무리
 		String imagePath = "";
@@ -169,12 +170,18 @@ public class OcrSampleController {
 			}
 		}
 		
+		System.out.println("result: " + result);
+		
 		language = languageFirst(language);
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
+		System.out.println("preprocessingResult: " + preprocessingResult);
+		System.out.println("prompt: " + Prompts.getPrompt(prompt));
+		afterDetectResult = UseGPT.useGPT(Prompts.getPrompt(prompt), preprocessingResult);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
 		
-		addTextExtract(fileName, language, model, result, preprocessingResult);
+		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		removeFile(fullPath);
 
@@ -223,6 +230,7 @@ public class OcrSampleController {
 		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
 		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
 		System.out.println("Doing tess!"); 
 		
 		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
@@ -230,6 +238,8 @@ public class OcrSampleController {
 		language = languageFirst(language); // kor+eng의 경우 prompt를 kor로 하기 위함
 		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
 		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = UseGPT.useGPT(Prompts.getPrompt(prompt), preprocessingResult);
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
 		
 		System.out.println(result);
@@ -237,7 +247,7 @@ public class OcrSampleController {
 		System.out.println(fileName);
 		System.out.println(language);
 		
-		addTextExtract(fileName, language, model, result, preprocessingResult);
+		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		System.out.println(model.toString());
 		
