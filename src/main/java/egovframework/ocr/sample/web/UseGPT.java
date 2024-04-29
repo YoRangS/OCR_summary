@@ -28,7 +28,7 @@ public class UseGPT {
         message.add(new ChatMessage("user", content));
         ChatCompletionRequest completionRequest = ChatCompletionRequest.builder() // OpenAI의 모델 선택하여 메세지 전달후 결과 텍스트 받기
                 .messages(message)
-                .model("gpt-3.5-turbo") // 터보 3.5모델 사용.
+                .model(KeyValue.model) 
                 .maxTokens(4000) // 입력과 출력중 출력에 할당되는 최대 토큰 값. 현재 입출력 최대 토큰 16,385
                 .temperature((double) 0.3f) // 답변의 자유도 설정
                 .build();

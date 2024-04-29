@@ -11,4 +11,5 @@ package egovframework.ocr.sample.web;
 public class KeyValue_tmp {
 	/*OpenAI 모델을 사용함에 필요한 키값. 반드시 본인의 키값으로 바꾸어야 한다.*/
 	public static String gptKey = "Your key from OpenAI - https://platform.openai.com/docs/introduction";
+	public static String model = "gpt-3.5-turbo"; // 터보 3.5모델 사용.
 }
