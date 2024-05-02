@@ -387,7 +387,7 @@ public class OcrSampleController {
 		System.out.println("scanResult: " + scanResult);
 
 		jsonTag = blockRequest(lang, prompt, scanResult, maxInputToken);
-
+		jsonTag = concatJson(jsonTag);
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("result", scanResult);
 		model.addAttribute("lang", lang);
@@ -421,7 +421,8 @@ public class OcrSampleController {
 		System.out.println("tags: " + jsonTag);
 
 		topTags = blockRequest(lang, prompt, scanResult, maxInputToken);
-
+		topTags = concatJson(topTags);
+		
 		prompt = "PUR_" + lang;
 		tagAndText = topTags + "\n" + scanResult;
 
@@ -440,6 +441,12 @@ public class OcrSampleController {
 		model.addAttribute("imgLink", convertToLink(jsonTag));
 
 		return "ocr/ocrTag";
+	}
+	
+	private String concatJson(String jsonString) {
+		jsonString = jsonString.replace("}{", ", ");
+		jsonString = jsonString.replace("} {", ", ");
+		return jsonString;
 	}
 	
 	private String blockRequest(String language, String prompt, String result, int tokenNum) {
@@ -468,6 +475,7 @@ public class OcrSampleController {
 	
 	private static String convertToLink(String jsonString) {
 		// JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
+		System.out.println("Json to deal with: " + jsonString);
 		String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
 
 		// 원하는 형식의 문자열로 변환
