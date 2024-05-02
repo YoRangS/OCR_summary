@@ -19,7 +19,8 @@ public class UseGPT {
      * @return ChatGPT를 통해 생성된 텍스트
      */
 	
-	public static int maxInputToken = 12000;  // GPT3.5 Turbo 기준 입력 최대 토큰 16,385
+	public static int maxInputToken = 12000;  // GPT3.5 Turbo 기준 입출력 토큰 16,385. 16385-4000=12385
+	//public static int maxInputToken = 120000;  // GPT4 Turbo 기준 입출력 토큰 128,000
 	public static int maxOutputToken = 4000; // GPT3.5 Turbo 기준 출력 최대 토큰 4,096
 	
     public static String useGPT(String prompt, String content) {
