@@ -180,12 +180,12 @@ public class OcrSampleController {
 		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
 		System.out.println("prompt: " + Prompts.getPrompt(prompt));
 		System.out.println("preprocessingResult: " + preprocessingResult);
-		//prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-		//afterDetectResult = blockRequest(language, prompt, result, maxOutputToken);
+		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = blockRequest(language, prompt, result, maxOutputToken);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
 		
 		addTextExtract(fileName, language, model, result, preprocessingResult);
-		//addTextExtract(fileName, language, model, result, afterDetectResult);
+		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		removeFile(fullPath);
 
@@ -241,8 +241,8 @@ public class OcrSampleController {
 		language = languageFirst(language).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
 		prompt = "FIX_TYPO_" + language;
 		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
-		//prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
-		//afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
 		
 		System.out.println(result);

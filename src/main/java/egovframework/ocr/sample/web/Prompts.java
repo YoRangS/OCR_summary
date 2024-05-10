@@ -26,23 +26,23 @@ public class Prompts {
     private static String TOP_TAG_ENG = "The follow json is a list of tags. From the json extract 5 tags with the most frequency and show them in the form of json format {Example: 3} without other explanation.";
     private static  String PUR_ENG = "The following json and text are the json and text for extracting the purpose of the text." 
     		+ " Try to figure out the purpose of the text based on the tags in short sentence and show them in the form of json format {Purpose: } without other explanation.";
-    private static String DETECT_SEN_ENG = "Question : Please identify sensitive information in the given text and mask that information directly. 010-5805-1636\r\n" + 
-    		"The format 010-5805-1636 is a phone number. The phone number must be masked with 8 digits after sensitive information, so it must be masked with 010-xxxx-xxxx.\r\n" + 
-    		"The answer is 010-xxxx-xxxx\r\n" + 
+    private static String DETECT_SEN_ENG = "Q: Please identify the sensitive information in the given text and mask it manually. If there is nothing that needs to be masked, please print the text as it is.\r\n" + 
+    		"010-5805-1636\r\n" + 
+    		"010-xxxx-xxxx\r\n" + 
     		"###\r\n" + 
-    		"Question : Please identify sensitive information in the given text and mask the information directly. 001020-3785883\r\n" + 
-    		"The same format as 001020-3785883 is the resident registration number. The resident registration number must be masked with 7 digits after sensitive information, so it must be masked with 001020-xxxxxxx.\r\n" + 
-    		"The answer is 001020-xxxxxxx\r\n" + 
+    		"Q: Please identify the sensitive information in the given text and mask it manually. If there is nothing that needs to be masked, please print the text as it is.\r\n" + 
+    		"001020-3785883\r\n" + 
+    		"001020-xxxxxxx\r\n" + 
     		"###\r\n" + 
-    		"Question : Please identify sensitive information in the given text, and mask that information directly. 21900673@handong.ac.kr\r\n" + 
-    		"Formatting like 21900673@handong.ac.kr is a form of email regardless of the string after @. Email addresses must mask sensitive information before @, so they must be masked with xxxxxxxx@handong.ac.kr .\r\n" + 
-    		"The answer is xxxxxxxx@handong.ac.kr\r\n" + 
+    		"Q: Please identify the sensitive information in the given text and mask it manually. If there is nothing that needs to be masked, please print the text as it is.\r\n" + 
+    		"21900673@handong.ac.kr\r\n" + 
+    		"xxxxxxxx@handong.ac.kr\r\n" + 
     		"###\r\n" + 
-    		"Question : Please identify sensitive information in the given text, and mask that information directly. However, \"\r\n" + 
-    		"Please only show the results without explaining like \"Sure, here are the masked sensitive information:\".\r\n" + 
-    		"010-3994-4959 | 010-8583-1992 | 010-2234-9596 | 010-5884-2353\r\n" + 
-    		"001223-3040040 | 011030-4821772 | 980231-2176478 | 990722-1003020\r\n" + 
-    		"21700343@handong.ac.kr | dncndj@gmail.com | rwei323@naver.com | ogoid@hanmail.net";
+    		"Question : Identify the sensitive information in the given text and mask it manually. If there is nothing that needs to be masked, please print the text as it is.\r\n" + 
+    		"The amount of words that ChatGPT can process is much larger in English. The amount of data you enter into ChatGPT is expressed in ‘tokens’, and currently ChatGPT can handle up to 4096 tokens.\r\n" + 
+    		"The amount of words that ChatGPT can handle is also much larger than in English. The amount of data you enter into ChatGPT is expressed in ‘tokens’, and currently ChatGPT can handle up to 4096 tokens.\r\n" + 
+    		"###\r\n" + 
+    		"Q: Please identify the sensitive information in the given text and mask it manually. If there is nothing that needs to be masked, please print the text as it is. \r\n";
     
     private static String SUMMARY_KOR = "해당 글을 5줄 이내로 요약해주세요. 엔터키도 적당히 섞어주세요.";
     private static String BLOCK_KOR = "해당 텍스트를 [n]글자수에 맞추어서  줄이고, 만약 줄일 수 없다면 줄이기를 시도하려던 텍스트를 다른 설명 없이 그대로 출력해주세요.";
@@ -54,19 +54,23 @@ public class Prompts {
     private static String TOP_TAG_KOR = "다음 json은 태그의 모음집입니다. json에서 가장 빈도수가 높은 5개의 태그를 다른 설명 없이 {예시: 3} 와 같이 json 형식으로만 보여주세요.";
     private static String PUR_KOR = "다음 json와 텍스트는 의도파악을 위해 사용하려는 태그와 텍스트 입니다."
     		+ " 다음의 텍스트를 태그를 기반으로 의도를 파악하여 다른 설명 없이 짧은 문장으로 {의도: }와 같은 json 형식으로만 보여주세요.";
-    private static String DETECT_SEN_KOR = "질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 없을 경우엔 그냥 그대로 출력해주세요. 010-5805-1636\r\n" + 
-    		"010-5805-1636과 같은 형식은 전화번호이다. 전화번호는 민감한 정보인 뒤 8자리를 마스킹해야하므로 010-xxxx-xxxx로 마스킹해야한다.\r\n" + 
-    		"정답은 010-xxxx-xxxx\r\n" + 
+    private static String DETECT_SEN_KOR = "질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 마스킹 처리해야 하는 부분이 없다면 원문을 그대로 출력해주세요.\r\n" + 
+    		"010-5805-1636\r\n" + 
+    		"010-xxxx-xxxx\r\n" + 
     		"###\r\n" + 
-    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 001020-3785883\r\n" + 
-    		"001020-3785883과 같은 형식은 주민등록번호이다. 주민등록번호는 민감한 정보인 뒤 7자리를 마스킹해야하므로 001020-xxxxxxx으로 마스킹해야한다.\r\n" + 
-    		"정답은 001020-xxxxxxx\r\n" + 
+    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 마스킹 처리해야 하는 부분이 없다면 원문을 그대로 출력해주세요.\r\n" + 
+    		"001020-3785883\r\n" + 
+    		"001020-xxxxxxx\r\n" + 
     		"###\r\n" + 
-    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 21900673@handong.ac.kr\r\n" + 
-    		"21900673@handong.ac.kr과 같은 형식은 @ 이후 문자열에 상관 없이 이메일의 형식이다. 이메일 주소는 민감한 정보인 @ 이전 문자들을 마스킹해야하므로 xxxxxxxx@handong.ac.kr으로 마스킹해야한다.\r\n" + 
-    		"정답은 xxxxxxxx@handong.ac.kr\r\n" + 
+    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 마스킹 처리해야 하는 부분이 없다면 원문을 그대로 출력해주세요.\r\n" + 
+    		"21900673@handong.ac.kr\r\n" + 
+    		"xxxxxxxx@handong.ac.kr\r\n" + 
     		"###\r\n" + 
-    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. ";
+    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 마스킹 처리해야 하는 부분이 없다면 원문을 그대로 출력해주세요.\r\n" + 
+    		"챗GPT가 처리할 수 있는 단어의 양도 영어가 훨씬 많다. 챗GPT에 입력하는 데이터 양은 '토큰'으로 표현되는데, 현재 챗GPT는 최대 4096개의 토큰을 처리할 수 있다.\r\n" + 
+    		"챗GPT가 처리할 수 있는 단어의 양도 영어가 훨씬 많다. 챗GPT에 입력하는 데이터 양은 '토큰'으로 표현되는데, 현재 챗GPT는 최대 4096개의 토큰을 처리할 수 있다.\r\n" + 
+    		"###\r\n" + 
+    		"질문 : 주어진 텍스트에서 민감한 정보를 식별하고, 해당 정보를 직접 마스킹 처리해주세요. 만약 마스킹 처리해야 하는 부분이 없다면 원문을 그대로 출력해주세요. \r\n";
 
     private static HashMap<String, String> promptMap = new HashMap<>(); // 명령어들을 모이기 위한 해시맵
     static { // 해시맵에 명령어들 추가
