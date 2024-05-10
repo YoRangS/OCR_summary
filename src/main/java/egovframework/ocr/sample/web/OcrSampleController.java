@@ -449,9 +449,9 @@ public class OcrSampleController {
 		return jsonString;
 	}
 	
-	private String blockRequest(String language, String prompt, String result, int tokenNum) {
-		String blockText, blockOutput;
-		String mergeResult = ""; // 전체 텍스트. 텍스트 추출의 결과를 입력값으로 받음
+	private String blockRequest(String language, String prompt, String result, int tokenNum) { // 언어, 프롬프트, 결과, 사용 토큰 숫자
+		String blockText, blockOutput; // 각 블력의 텍스트, 호출된 결과를 받기 위한 함수
+		String mergeResult = ""; // 전체 텍스트. 각 블럭당 호출의 결과물을 합침
 		int charNum, blockNum = 0, i, endIndex;
 		
 		charNum = result.length();
@@ -459,7 +459,7 @@ public class OcrSampleController {
 		blockNum = (charNum/tokenNum) + 1; // 텍스트 글자수 / 전체 입력 토큰의 반올림을 블럭의 갯수로 정함
 		System.out.println("blockNum: " + blockNum);
 		
-		for (i = 0; i < blockNum; i++) {
+		for (i = 0; i < blockNum; i++) { // 블럭 갯수 만큼 반복
 			System.out.println("Start");
 			endIndex = Math.min((i + 1) * tokenNum, charNum); // 인덱스의 끝부분 표시. 최대를 넘지 않도록 비교함
 			blockText = result.substring(i * tokenNum, endIndex); // 현재 인덱스에서 끝 인덱스까지
@@ -467,7 +467,7 @@ public class OcrSampleController {
 			System.out.println("Promt: " + Prompts.getPrompt(prompt));
 			blockOutput = UseGPT.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
 			System.out.println("End");
-			mergeResult = mergeResult.concat(blockOutput); // 블럭의 내용 합치기
+			mergeResult = mergeResult.concat(blockOutput); // GPT 호출 내용 합치기
 		}
 		
 		return mergeResult;
