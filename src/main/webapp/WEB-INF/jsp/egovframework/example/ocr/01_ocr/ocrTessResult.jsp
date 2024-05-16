@@ -229,70 +229,84 @@ input[type='number'] {-moz-appearance: textfield;}
                         </div>
                         <!-- //탭 메뉴 -->
 
-                        <!-- 탭 컨텐츠 & 스크롤 영역 -->
-                        <div class="tab_cont scroll_area">
-                            <!-- 컨텐츠 타이틀 (숨김) -->
-                            <h2 class="blind">스캔 결과 폼</h2>
-                            <!-- //컨텐츠 타이틀 (숨김) -->
-
-                            <!-- 폼 영역 -->
-                            <div class="form_view">
-                                <table>
-                                    <colgroup>
-                                        <col style="width:176px;">
-                                        <col style="width:auto;">
-                                    </colgroup>
-                                    <tbody>
-                                        <tr>
-                                            <th>스캔 파일명</th>
-                                            <td>
-                                                <span class="txt">파일명.png</span>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- //폼 영역 -->
-
-                            <!-- 폼 영역 -->
-                            <div class="form_view">
-                                <table>
-                                    <colgroup>
-                                        <col style="width:176px;">
-                                        <col style="width:auto;">
-                                    </colgroup>
-                                    <tbody>
-                                        <tr>
-                                            <th>스캔 결과</th>
-                                            <td>
-                                                <div class="input_group textarea_control">
-                                                    <textarea rows="8" cols=""></textarea>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>오타 수정</th>
-                                            <td>
-                                                <div class="input_group textarea_control">
-                                                    <textarea rows="8" cols=""></textarea>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <!-- //폼 영역 -->
-
-                            <!-- 하단 버튼 영역 -->
-                            <div class="view_btn_area">
-                                <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
-                                기본 : <button class="btn">
-                                비활성화 : <button class="btn" disabled> -->
-                                <button class="btn">돌아가기</button>
-                            </div>
-                            <!-- //하단 버튼 영역 -->
-                        </div>
-                        <!-- //탭 컨텐츠 & 스크롤 영역 -->
+						<form action="/summary.do" method="POST">
+	                        <!-- 탭 컨텐츠 & 스크롤 영역 -->
+	                        <div class="tab_cont scroll_area">
+	                            <!-- 컨텐츠 타이틀 (숨김) -->
+	                            <h2 class="blind">스캔 결과 폼</h2>
+	                            <!-- //컨텐츠 타이틀 (숨김) -->
+	
+	                            <!-- 폼 영역 -->
+	                            <div class="form_view">
+	                                <table>
+	                                    <colgroup>
+	                                        <col style="width:176px;">
+	                                        <col style="width:auto;">
+	                                    </colgroup>
+	                                    <tbody>
+	                                        <tr>
+	                                            <th>스캔 파일명</th>
+	                                            <td>
+	                                                <input type="text" id="fileName" name="fileName"
+														value=${fileName}>
+	                                            </td>
+	                                        </tr>
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                            <!-- //폼 영역 -->
+	
+	                            <!-- 폼 영역 -->
+	                            <div class="form_view">
+	                                <table>
+	                                    <colgroup>
+	                                        <col style="width:176px;">
+	                                        <col style="width:auto;">
+	                                    </colgroup>
+	                                    <tbody>
+	                                    	<tr>
+	                                            <th>사용 언어</th>
+	                                            <td>
+	                                                <input type="text" id="lang" name="lang" value=${lang}>
+	                                            </td>
+	                                        </tr>
+	                                        <tr>
+	                                            <th>스캔 결과</th>
+	                                            <td>
+	                                                <div class="input_group textarea_control">
+	                                                    <textarea name="scanResult" rows="8" cols="">${scan}</textarea>
+	                                                </div>
+	                                            </td>
+	                                        </tr>
+	                                        <tr>
+	                                            <th>오타 수정</th>
+	                                            <td>
+	                                                <div class="input_group textarea_control">
+	                                                    <textarea rows="8" cols="">${result}</textarea>
+	                                                </div>
+	                                            </td>
+	                                        </tr>
+	                                    </tbody>
+	                                </table>
+	                            </div>
+	                            <!-- //폼 영역 -->
+	
+	                            <!-- 하단 버튼 영역 -->
+	                            <div class="view_btn_area">
+	                                <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
+	                            	
+							                                기본 : <button class="btn">
+							                                비활성화 : <button class="btn" disabled> -->
+							        <!-- 완료 버튼 (complete) -->
+                                	<button type="submit" class="btn complete">내용 요약</button>
+                                	<!-- 완료 버튼 (complete) -->
+                                	<button class="btn complete">태그 추출</button>
+	                                <button class="btn" onclick="history.back()">돌아가기</button>
+	                            </div>
+	                            <!-- //하단 버튼 영역 -->
+	                        </div>
+	                        <!-- //탭 컨텐츠 & 스크롤 영역 -->
+                        </form>
                     </div>
                     <!-- //탭 섹션 -->
                 </div>

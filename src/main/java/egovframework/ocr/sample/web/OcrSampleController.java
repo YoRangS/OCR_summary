@@ -303,7 +303,8 @@ public class OcrSampleController {
 		String prompt = "SUMMARY_" + lang; // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
 		String fileTrim = fileName; // .png등 파일 포멧을 떼고 저장하기 위함
 		String summaryText = ""; // 요약 텍스트를 보관
-
+		
+		
 		int dotIndex = fileName.lastIndexOf('.');
 		
 		if (dotIndex != -1) {
@@ -321,7 +322,7 @@ public class OcrSampleController {
 		model.addAttribute("fileTrim", fileTrim);
 		model.addAttribute("summary", summaryText);
 
-		return "ocr/ocrSummary";
+		return "ocr/01_ocr/ocrSummary";
 	}
 
 	/**
