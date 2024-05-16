@@ -210,7 +210,6 @@ input[type='number'] {-moz-appearance: textfield;}
             <!-- //header -->
 
             <!-- body -->
-            <form action="/purpose.do" method="POST">
             <main class="body">
                 <!-- 컨텐츠 영역 -->
                 <div class="container_area">
@@ -278,7 +277,6 @@ input[type='number'] {-moz-appearance: textfield;}
                                                     <textarea id="pur" name="purpose" rows="8" cols="">${purpose}</textarea>
                                                 </div>
                                             </td>
-                                        </tr>
                                         </tr>
                                         <tr>
                                             <th>WordCloud</th>
