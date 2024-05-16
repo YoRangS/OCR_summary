@@ -297,16 +297,20 @@ input[type='number'] {-moz-appearance: textfield;}
 	                            	
 							                                기본 : <button class="btn">
 							                                비활성화 : <button class="btn" disabled> -->
-							        <!-- 완료 버튼 (complete) -->
+							        <!-- 내용 요약 버튼 (summary) -->
                                 	<button type="submit" class="btn complete">내용 요약</button>
-                                	<!-- 완료 버튼 (complete) -->
-                                	<button class="btn complete">태그 추출</button>
 	                                <button class="btn" onclick="history.back()">돌아가기</button>
 	                            </div>
 	                            <!-- //하단 버튼 영역 -->
 	                        </div>
 	                        <!-- //탭 컨텐츠 & 스크롤 영역 -->
                         </form>
+                        <!-- 태그 추출 버튼 (tag) -->
+                     	<form action="/tag.do" method="POST" style="display: inline;">
+                     		<button class="btn complete">태그 추출</button>
+		    				<input type="hidden" name="lang" value="${lang}">
+		    				<input type="hidden" name="scanResult" value="${result}">
+						</form>
                     </div>
                     <!-- //탭 섹션 -->
                 </div>
