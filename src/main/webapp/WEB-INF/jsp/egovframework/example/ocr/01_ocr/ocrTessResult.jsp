@@ -199,6 +199,10 @@ input[type='number'] {-moz-appearance: textfield;}
 
 /* 컨테츠 스크롤 영역 */
 .scroll_area {height: 100%; overflow-y: auto;}
+
+.button-container {text-align: center; margin-top: 10px; /* Adjust the top margin as needed */
+}
+
         </style>
         
     </head>
@@ -302,15 +306,15 @@ input[type='number'] {-moz-appearance: textfield;}
 	                                <button class="btn" onclick="history.back()">돌아가기</button>
 	                            </div>
 	                            <!-- //하단 버튼 영역 -->
-	                        </div>
-	                        <!-- //탭 컨텐츠 & 스크롤 영역 -->
-                        </form>
-                        <!-- 태그 추출 버튼 (tag) -->
-                     	<form action="/tag.do" method="POST" style="display: inline;">
-                     		<button class="btn complete">태그 추출</button>
-		    				<input type="hidden" name="lang" value="${lang}">
-		    				<input type="hidden" name="scanResult" value="${result}">
-						</form>
+                        	</form>
+	                        <!-- 태그 추출 버튼 (tag) -->
+	                     	<form action="/tag.do" method="POST">
+	                     		<button class="btn complete">태그 추출</button>
+			    				<input type="hidden" name="lang" value="${lang}">
+			    				<input type="hidden" name="scanResult" value="${result}">
+							</form>
+	                    </div>
+	                    <!-- //탭 컨텐츠 & 스크롤 영역 -->
                     </div>
                     <!-- //탭 섹션 -->
                 </div>
