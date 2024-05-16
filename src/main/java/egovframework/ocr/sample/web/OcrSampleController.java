@@ -394,7 +394,7 @@ public class OcrSampleController {
 		model.addAttribute("jsonTag", jsonTag);
 		model.addAttribute("imgLink", convertToLink(jsonTag));
 
-		return "ocr/ocrTag";
+		return "ocr/01_ocr/ocrTag";
 	}
 
 	/**
