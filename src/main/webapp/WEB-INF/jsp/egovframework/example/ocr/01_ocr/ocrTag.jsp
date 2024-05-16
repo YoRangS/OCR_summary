@@ -210,6 +210,7 @@ input[type='number'] {-moz-appearance: textfield;}
             <!-- //header -->
 
             <!-- body -->
+            <form action="/purpose.do" method="POST">
             <main class="body">
                 <!-- 컨텐츠 영역 -->
                 <div class="container_area">
@@ -259,7 +260,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                         <tr>
                                             <td>
                                                 <div class="input_group textarea_control">
-                                                    <textarea rows="8" cols=""></textarea>
+                                                    <textarea id="jsonTag" name="jsonTag" rows="8" cols="">${jsonTag}</textarea>
                                                 </div>
                                             </td>
                                         </tr>
@@ -278,7 +279,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                         <tr>
                                             <td>
                                                 <div class="input_group textarea_control">
-                                                    <textarea rows="8" cols=""></textarea>
+                                                    <textarea id="pur" name="purpose" rows="8" cols="">${purpose}</textarea>
                                                 </div>
                                             </td>
                                         </tr>
@@ -288,7 +289,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                                 <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
                                                 기본 : <button class="btn">
                                                 비활성화 : <button class="btn" disabled> -->
-                                                <button class="btn">생성</button>
+                                                <button class="btn" onclick="window.open('${imgLink}','_blank')">생성</button>
                                             </td>
                                         </tr>
                                     </tbody>
@@ -301,7 +302,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                 <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
                                 기본 : <button class="btn">
                                 비활성화 : <button class="btn" disabled> -->
-                                <button class="btn">돌아가기</button>
+                                <button class="btn" onclick="history.back()">돌아가기</button>
                             </div>
                             <!-- //하단 버튼 영역 -->
                         </div>
@@ -311,6 +312,7 @@ input[type='number'] {-moz-appearance: textfield;}
                 </div>
                 <!-- //컨텐츠 영역 -->
             </main>
+            </form>
             <!-- //body -->
         </div>
         <!-- //wrapper -->

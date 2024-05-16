@@ -440,7 +440,7 @@ public class OcrSampleController {
 		model.addAttribute("purpose", purpose);
 		model.addAttribute("imgLink", convertToLink(jsonTag));
 
-		return "ocr/ocrTag";
+		return "ocr/01_ocr/ocrTag";
 	}
 	
 	private String concatJson(String jsonString) {
