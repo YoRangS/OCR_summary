@@ -279,6 +279,7 @@ public class OcrSampleController {
 	}
 	
 	private String languageFirst(String language) {
+		System.out.println(language);
 		int plusIndex = language.indexOf('+');
 		if (plusIndex != -1) { // '+'가 발견된 경우
 			language = language.substring(0, plusIndex); // kor+eng의 경우 kor만 고려. prompt를 사용할 언어와의 상호작용을 위함

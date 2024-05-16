@@ -210,7 +210,6 @@ input[type='number'] {-moz-appearance: textfield;}
             <!-- //header -->
 
             <!-- body -->
-            <form action="/purpose.do" method="POST">
             <main class="body">
                 <!-- 컨텐츠 영역 -->
                 <div class="container_area">
@@ -234,6 +233,8 @@ input[type='number'] {-moz-appearance: textfield;}
                             <!-- //컨텐츠 타이틀 (숨김) -->
 
                             <!-- 폼 영역 -->
+                            <form action="/purpose.do" method="POST">
+							<input type="hidden" name="scanResult" value="${result}">
                             <div class="form_view">
                                 <table>
                                     <colgroup>
@@ -246,14 +247,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                             <td>
                                                 <div class="flex_group">
                                                     <span class="txt">사용할 언어</span>
-                                                    <select>
-                                                        <option selected>한국어</option>
-                                                        <option>영어</option>
-                                                    </select>
-                                                    <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
-                                                    기본 : <button class="btn">
-                                                    비활성화 : <button class="btn" disabled> -->
-                                                    <button class="btn">태그 추출 실행</button>
+                                                       <input type="text" id="lang" name="lang" value=${lang}>
                                                 </div>
                                             </td>
                                         </tr>
@@ -271,8 +265,9 @@ input[type='number'] {-moz-appearance: textfield;}
                                                     <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
                                                     기본 : <button class="btn">
                                                     비활성화 : <button class="btn" disabled> -->
-                                                    <button class="btn">의도 추출 실행</button>
-                                                    <strong class="caution">※ 의도 추출은 반드시 태그 추출 이후에 실행하여야 합니다.</ㄴ>
+                                                    
+                                                   		<button type="submit" class="btn">의도 추출 실행</button>
+                                                    <strong class="caution">※ 의도 추출은 반드시 태그 추출 이후에 실행하여야 합니다. </strong>
                                                 </div>
                                             </td>
                                         </tr>
@@ -282,6 +277,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                                     <textarea id="pur" name="purpose" rows="8" cols="">${purpose}</textarea>
                                                 </div>
                                             </td>
+                                        </tr>
                                         </tr>
                                         <tr>
                                             <th>WordCloud</th>
@@ -296,7 +292,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                 </table>
                             </div>
                             <!-- //폼 영역 -->
-
+                            </form>
                             <!-- 하단 버튼 영역 -->
                             <div class="view_btn_area">
                                 <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
@@ -312,7 +308,7 @@ input[type='number'] {-moz-appearance: textfield;}
                 </div>
                 <!-- //컨텐츠 영역 -->
             </main>
-            </form>
+            
             <!-- //body -->
         </div>
         <!-- //wrapper -->

@@ -232,9 +232,6 @@ input[type='number'] {-moz-appearance: textfield;}
                             <!-- 컨텐츠 타이틀 (숨김) -->
                             <h2 class="blind">내용 요약 폼</h2>
                             <!-- //컨텐츠 타이틀 (숨김) -->
-
-                            <!-- 폼 영역 -->
-                            <form action="/summary.do" method="POST">
                             <div class="form_view">
                                 <table>
                                     <colgroup>
@@ -282,6 +279,7 @@ input[type='number'] {-moz-appearance: textfield;}
                             <!-- //하단 버튼 영역 -->
 
                             <!-- 폼 영역 -->
+                            <form action="/summary.do" method="POST">
                             <div class="form_view">
                                 <table>
                                     <colgroup>
@@ -307,7 +305,11 @@ input[type='number'] {-moz-appearance: textfield;}
                                                     <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
                                                     	기본 : <button class="btn">
                                                     	비활성화 : <button class="btn" disabled> -->
-                                                    <button class="btn" type="submit">저장하기</button>
+                                                    	<!-- 폼 영역 -->
+                            						
+                                                    	<button class="btn" type="submit">저장하기</button>
+   	 													<input type="hidden" name="scanResult" value="${result}">
+                                                   	
                                                 </div>
                                             </td>
                                         </tr>
@@ -315,7 +317,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                 </table>
                             </div>
                             <!-- //폼 영역 -->
-
+							</form>
                             <!-- 하단 버튼 영역 -->
                             <div class="view_btn_area">
                                 <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요

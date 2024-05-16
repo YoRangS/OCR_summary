@@ -232,8 +232,6 @@ input[type='number'] {-moz-appearance: textfield;}
                             </ul>
                         </div>
                         <!-- //탭 메뉴 -->
-
-						<form action="/summary.do" method="POST">
 	                        <!-- 탭 컨텐츠 & 스크롤 영역 -->
 	                        <div class="tab_cont scroll_area">
 	                            <!-- 컨텐츠 타이틀 (숨김) -->
@@ -301,18 +299,21 @@ input[type='number'] {-moz-appearance: textfield;}
 	                            	
 							                                기본 : <button class="btn">
 							                                비활성화 : <button class="btn" disabled> -->
-							        <!-- 내용 요약 버튼 (summary) -->
-                                	<button type="submit" class="btn complete">내용 요약</button>
+							        <form action="/summary.do" method="POST">
+                                		<button type="submit" class="btn complete">내용 요약</button>
+			    						<input type="hidden" name="scanResult" value="${result}">
+			    						<input type="hidden"  name="fileName" value="${fileName}">
+			    						<input type="hidden" name="lang" value="${lang}">
+                                	</form><!-- 태그 추출 버튼 (tag) -->
+	                     			<form action="/tag.do" method="POST">
+	                     				<button class="btn complete">태그 추출</button>
+			    						<input type="hidden" name="lang" value="${lang}">
+			    						<input type="hidden" name="scanResult" value="${result}">
+									</form>	
 	                                <button class="btn" onclick="history.back()">돌아가기</button>
 	                            </div>
 	                            <!-- //하단 버튼 영역 -->
-                        	</form>
-	                        <!-- 태그 추출 버튼 (tag) -->
-	                     	<form action="/tag.do" method="POST">
-	                     		<button class="btn complete">태그 추출</button>
-			    				<input type="hidden" name="lang" value="${lang}">
-			    				<input type="hidden" name="scanResult" value="${result}">
-							</form>
+	                        
 	                    </div>
 	                    <!-- //탭 컨텐츠 & 스크롤 영역 -->
                     </div>
