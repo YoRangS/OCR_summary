@@ -60,7 +60,7 @@ public class OcrSampleController {
 	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
-		return "ocr/ocrSampleList";
+		return "ocr/01_ocr/ocrSelectFile";
 	}
 
 	@RequestMapping(value = "/goToCrop.do", method = RequestMethod.GET) // 이미지 자르기 페이지로 가기
