@@ -189,7 +189,7 @@ public class OcrSampleController {
 		
 		removeFile(fullPath);
 
-		return "ocr/ocrSampleList";
+		return "ocr/01_ocr/ocrTessResult";
 	}
 
 	/**
