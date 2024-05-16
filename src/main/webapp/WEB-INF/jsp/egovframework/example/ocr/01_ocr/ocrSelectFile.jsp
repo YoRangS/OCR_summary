@@ -270,8 +270,8 @@ input[type='number'] {-moz-appearance: textfield;}
                                                         <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
                                                         기본 : <input type="file">
                                                         비활성화 : <input type="file" disabled> -->
-                                                        <input type="file" name="add_file01" id="add_file01" size="1">
-                                                        <label for="add_file01" class="btn">파일 찾기</label>
+                                                        <input type="file" name="file" id="fileUpload" size="1">
+                                                        <label for="fileUpload" class="btn">파일 찾기</label>
                                                         <script>
                                                         	const fileInput = document.getElementById("fileUpload");
                                                 		
@@ -290,73 +290,47 @@ input[type='number'] {-moz-appearance: textfield;}
                                                         </script>
                                                     </span>
                                                 </div>
-                                            </td>
-                                        </tr>
-                                        <!-- 파일 선택 후 -->
-                                        <tr>
-                                            <th>파일 선택</th>
-                                            <td>
-                                                <!-- 첨부파일 -->
-                                                <div class="flex_group attachment">
-                                                    <!-- 파일 선택 후 -->
-                                                    <span class="btn_file">
-                                                        <!-- [D] 버튼 비활성화 시 disabled 속성 추가 필요
-                                                        기본 : <input type="file">
-                                                        비활성화 : <input type="file" disabled> -->
-                                                        <input type="file" name="add_file02" id="add_file02" size="1" disabled>
-                                                        <label for="add_file02" class="btn">파일 찾기</label>
-                                                    </span>
-                                                    <span class="attached_file">
-                                                        <span class="file_name"></span><span class="file_extension">.xlsx</span>
-                                                        <!-- [D] ico_btn 클릭시 파일 선택 전 상태로 출력 -->
-                                                        <button class="ico_btn cancel"></button>
-                                                    </span>
-                                                </div>
-                                                <!-- 이미지 미리보기 영역 (preview_img), 너비 300 사이즈 (small) -->
                                                 <div class="preview_img small">
                                                     <img id="previewImg" width="300" alt="이미지 영역">
                                                 </div>
                                             </td>
                                         </tr>
-                                        <tr>
                                             <th>텍스트 추출에 사용할 언어</th>
                                             <td>
-                                                <select>
+                                                <select id="language" name="language">
                                                     <option selected value="kor+eng">한국어 + 영어</option>
                                                     <option value="kor">한국어</option>
                                                     <option value="eng">영어</option>
                                                 </select>
                                             </td>
                                         </tr>
-                                        <tr>
                                             <th>문서 형태</th>
                                             <td>
                                                 <div class="flex_group">
-                                                    <select>
-                                                        <option selected>일반 추출</option>
-                                                        <option>특정 페이지 추출</option>
-                                                    </select>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                        <tr>
-                                            <th>문서 형태</th>
-                                            <td>
-                                                <div class="flex_group">
-                                                    <select>
-                                                        <option>일반 추출</option>
-                                                        <option selected>특정 페이지 추출</option>
+                                                    <select id="tessType" name="tessType">
+                                                        <option selected value="tess">일반 추출</option>
+                                                        <option value="tessLimit">특정 페이지 추출</option>
                                                     </select>
                                                     <!-- [D] 특정 페이지 추출 선택시 출력 -->
-                                                    <div class="flex_group">
-                                                        <div class="input_group" style="width: 58px;">
-                                                            <input type="number" class="form_control" name="">
+                                                    <div class="flex_group" id="tessLimitPage" style="display:none;">
+                                                        <div class="input_group">
+                                                        	<label for="startPage">시작 페이지:</label>
+                                                            <input type="number" id="startPage"  name="startPage" value="1" style="width: 50px;">
                                                         </div>
                                                         ~
-                                                        <div class="input_group" style="width: 58px;">
-                                                            <input type="number" class="form_control" name="">
+                                                        <div class="input_group" >
+                                                        	<label for="endPage">종료 페이지:</label>
+                                                            <input type="number" id="endPage" name="endPage" value="1" style="width: 50px;">
                                                         </div>
                                                     </div>
+                                                    <script>
+													    const extractTypeSelect = document.getElementById("tessType");
+													    const specificPageFields = document.getElementById("tessLimitPage");
+													
+													    extractTypeSelect.addEventListener("change", function() {
+													    	specificPageFields.style.display = (extractTypeSelect.value === "tessLimit") ? "block" : "none";
+													    });
+													</script>
                                                 </div>
                                             </td>
                                         </tr>
@@ -372,7 +346,7 @@ input[type='number'] {-moz-appearance: textfield;}
                                 비활성화 : <button class="btn" disabled> -->
 
                                 <!-- 완료 버튼 (complete) -->
-                                <button class="btn complete" disabled>텍스트 추출</button>
+                                <button type="submit" class="btn complete">텍스트 추출</button>
                             </div>
                             <!-- //하단 버튼 영역 -->
                         </div>
