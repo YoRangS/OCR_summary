@@ -52,12 +52,15 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class OcrSampleController {
 	
+	private int maxInputToken = UseGPT.maxInputToken;
+	private int maxOutputToken = UseGPT.maxOutputToken;
+	
 	@Autowired
     private ServletContext servletContext;
 	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
-		return "ocr/ocrSampleList";
+		return "ocr/01_ocr/ocrSelectFile";
 	}
 
 	@RequestMapping(value = "/goToCrop.do", method = RequestMethod.GET) // 이미지 자르기 페이지로 가기
@@ -121,6 +124,7 @@ public class OcrSampleController {
 		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
 		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
 		
 		int start = 1, end = 1; // 페이지의 시작과 마무리
 		String imagePath = "";
@@ -169,16 +173,23 @@ public class OcrSampleController {
 			}
 		}
 		
-		language = languageFirst(language);
-		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		System.out.println("result: " + result);
+		
+		language = languageFirst(language).toUpperCase();
+		prompt = "FIX_TYPO_" + language;
+		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
+		System.out.println("prompt: " + Prompts.getPrompt(prompt));
+		System.out.println("preprocessingResult: " + preprocessingResult);
+		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = blockRequest(language, prompt, result, maxOutputToken);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
 		
 		addTextExtract(fileName, language, model, result, preprocessingResult);
+		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		removeFile(fullPath);
 
-		return "ocr/ocrSampleList";
+		return "ocr/01_ocr/ocrTessResult";
 	}
 
 	/**
@@ -221,15 +232,17 @@ public class OcrSampleController {
         
 		String prompt = ""; // ChatGPT에게 보낼 명령어
 		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
-		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
 		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
 		System.out.println("Doing tess!"); 
 		
 		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
 		
-		language = languageFirst(language); // kor+eng의 경우 prompt를 kor로 하기 위함
-		prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
-		preprocessingResult = UseGPT.useGPT(Prompts.getPrompt(prompt), result); // text after using ChatGPT to fix typos
+		language = languageFirst(language).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		prompt = "FIX_TYPO_" + language;
+		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
+		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
 		
 		System.out.println(result);
@@ -238,6 +251,7 @@ public class OcrSampleController {
 		System.out.println(language);
 		
 		addTextExtract(fileName, language, model, result, preprocessingResult);
+		//addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		System.out.println(model.toString());
 		
@@ -265,6 +279,7 @@ public class OcrSampleController {
 	}
 	
 	private String languageFirst(String language) {
+		System.out.println(language);
 		int plusIndex = language.indexOf('+');
 		if (plusIndex != -1) { // '+'가 발견된 경우
 			language = language.substring(0, plusIndex); // kor+eng의 경우 kor만 고려. prompt를 사용할 언어와의 상호작용을 위함
@@ -285,11 +300,12 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/summary.do", method = RequestMethod.POST)
 	public String summary(@RequestParam String scanResult, String fileName, String lang, Model model) {
-		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
-		String prompt = "SUMMARY_" + lang.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
+		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		String prompt = "SUMMARY_" + lang; // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
 		String fileTrim = fileName; // .png등 파일 포멧을 떼고 저장하기 위함
 		String summaryText = ""; // 요약 텍스트를 보관
-
+		
+		
 		int dotIndex = fileName.lastIndexOf('.');
 		
 		if (dotIndex != -1) {
@@ -299,7 +315,7 @@ public class OcrSampleController {
 		}
 		
 		System.out.println("scanResult: " + scanResult);
-		summaryText = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
+		summaryText = blockRequest(lang, prompt, scanResult, maxInputToken);
 		summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
 		summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
 
@@ -307,7 +323,7 @@ public class OcrSampleController {
 		model.addAttribute("fileTrim", fileTrim);
 		model.addAttribute("summary", summaryText);
 
-		return "ocr/ocrSummary";
+		return "ocr/01_ocr/ocrSummary";
 	}
 
 	/**
@@ -364,23 +380,23 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/tag.do", method = RequestMethod.POST)
 	public String vision(@RequestParam String scanResult, String lang, Model model) {
-		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
-		String prompt = "TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		String prompt = "TAG_" + lang; // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String jsonTag = ""; // json 형식의 요약 태그를 보관
 
 		System.out.println("prompt: " + prompt);
 		System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
 		System.out.println("scanResult: " + scanResult);
 
-		jsonTag = UseGPT.useGPT(Prompts.getPrompt(prompt), scanResult);
-
+		jsonTag = blockRequest(lang, prompt, scanResult, maxInputToken);
+		jsonTag = concatJson(jsonTag);
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("result", scanResult);
 		model.addAttribute("lang", lang);
 		model.addAttribute("jsonTag", jsonTag);
 		model.addAttribute("imgLink", convertToLink(jsonTag));
 
-		return "ocr/ocrTag";
+		return "ocr/01_ocr/ocrTag";
 	}
 
 	/**
@@ -396,8 +412,8 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/purpose.do", method = RequestMethod.POST)
 	public String purpose(@RequestParam String scanResult, String lang, String jsonTag, Model model) {
-		lang = languageFirst(lang); // kor+eng의 경우 prompt를 kor로 하기 위함
-		String prompt = "TOP_TAG_" + lang.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		String prompt = "TOP_TAG_" + lang; // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
 		String purpose = ""; // 태그를 기반으로 한 텍스트의 의도 추출
 		String tagAndText = "";
@@ -406,9 +422,10 @@ public class OcrSampleController {
 		System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
 		System.out.println("tags: " + jsonTag);
 
-		topTags = UseGPT.useGPT(Prompts.getPrompt(prompt), jsonTag);
-
-		prompt = "PUR_" + lang.toUpperCase();
+		topTags = blockRequest(lang, prompt, scanResult, maxInputToken);
+		topTags = concatJson(topTags);
+		
+		prompt = "PUR_" + lang;
 		tagAndText = topTags + "\n" + scanResult;
 
 		System.out.println("prompt: " + prompt);
@@ -416,7 +433,7 @@ public class OcrSampleController {
 		System.out.println("Top 5 tags: " + topTags);
 		System.out.println("Tag and Text: " + tagAndText);
 
-		purpose = UseGPT.useGPT(Prompts.getPrompt(prompt), tagAndText);
+		purpose = blockRequest(lang, prompt, tagAndText, maxInputToken);
 
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("result", scanResult);
@@ -425,11 +442,42 @@ public class OcrSampleController {
 		model.addAttribute("purpose", purpose);
 		model.addAttribute("imgLink", convertToLink(jsonTag));
 
-		return "ocr/ocrTag";
+		return "ocr/01_ocr/ocrTag";
+	}
+	
+	private String concatJson(String jsonString) {
+		jsonString = jsonString.replace("}{", ", ");
+		jsonString = jsonString.replace("} {", ", ");
+		return jsonString;
+	}
+	
+	private String blockRequest(String language, String prompt, String result, int tokenNum) { // 언어, 프롬프트, 결과, 사용 토큰 숫자
+		String blockText, blockOutput; // 각 블력의 텍스트, 호출된 결과를 받기 위한 함수
+		String mergeResult = ""; // 전체 텍스트. 각 블럭당 호출의 결과물을 합침
+		int charNum, blockNum = 0, i, endIndex;
+		
+		charNum = result.length();
+		System.out.println("charNum: " + charNum);
+		blockNum = (charNum/tokenNum) + 1; // 텍스트 글자수 / 전체 입력 토큰의 반올림을 블럭의 갯수로 정함
+		System.out.println("blockNum: " + blockNum);
+		
+		for (i = 0; i < blockNum; i++) { // 블럭 갯수 만큼 반복
+			System.out.println("Start");
+			endIndex = Math.min((i + 1) * tokenNum, charNum); // 인덱스의 끝부분 표시. 최대를 넘지 않도록 비교함
+			blockText = result.substring(i * tokenNum, endIndex); // 현재 인덱스에서 끝 인덱스까지
+			System.out.println("blockText: " + blockText);
+			System.out.println("Promt: " + Prompts.getPrompt(prompt));
+			blockOutput = UseGPT.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
+			System.out.println("End");
+			mergeResult = mergeResult.concat(blockOutput); // GPT 호출 내용 합치기
+		}
+		
+		return mergeResult;
 	}
 	
 	private static String convertToLink(String jsonString) {
 		// JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
+		System.out.println("Json to deal with: " + jsonString);
 		String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
 
 		// 원하는 형식의 문자열로 변환
