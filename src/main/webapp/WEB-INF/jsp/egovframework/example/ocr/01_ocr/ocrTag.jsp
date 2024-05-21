@@ -88,7 +88,6 @@
                                                 </div>
                                             </td>
                                         </tr>
-                                        </tr>
                                         <tr>
                                             <th>WordCloud</th>
                                             <td>
