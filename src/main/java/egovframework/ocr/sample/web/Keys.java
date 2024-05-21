@@ -18,6 +18,7 @@ public class Keys {
     public static Keys keys;
     /*API 연결에 필요한 키값*/
     private static String gptKey = KeyValue.gptKey;
+    private static String gptModel = KeyValue.gptModel;
     
     
     /*키 인스턴스 생선*/
@@ -30,5 +31,8 @@ public class Keys {
     /*키값 불러오기*/
     public String getGptKey() {
         return gptKey;
+    }
+    public String getGptModel() {
+        return gptModel;
     }
 }

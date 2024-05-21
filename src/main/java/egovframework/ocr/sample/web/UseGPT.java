@@ -26,6 +26,7 @@ public class UseGPT {
     public static String useGPT(String prompt, String content) {
         Keys keysInstance = Keys.getInstance(); // OpenAI API 활용을 위한 키 인스턴스
         String gptKey = keysInstance.getGptKey(); // 인스턴스의 키값
+        String gptModel = keysInstance.getGptModel();
         OpenAiService service = new OpenAiService(gptKey,Duration.ofMinutes(9999)); // OpenAI 서비스 연결
 
         List<ChatMessage> message = new ArrayList<ChatMessage>(); // GPT에게 보낼 메세지 어레이
@@ -33,7 +34,7 @@ public class UseGPT {
         message.add(new ChatMessage("user", content));
         ChatCompletionRequest completionRequest = ChatCompletionRequest.builder() // OpenAI의 모델 선택하여 메세지 전달후 결과 텍스트 받기
                 .messages(message)
-                .model("gpt-3.5-turbo-16k") // 터보 3.5모델 사용.
+                .model(gptModel) // 터보 3.5모델 사용.
                 .maxTokens(4000) // 입력과 출력중 출력에 할당되는 최대 토큰 값. 현재 입출력 최대 토큰 16,385
                 .temperature((double) 0.3f) // 답변의 자유도 설정
                 .build();
