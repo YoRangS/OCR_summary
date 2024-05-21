@@ -116,11 +116,11 @@ public class OcrRestController {
         
         result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
         
-        language = languageFirst(language);
+        language = languageFirst(language).toUpperCase();
         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
         preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
         preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
-        prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
+        prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
         afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
         afterDetectResult = afterDetectResult.replaceAll("\"", "");
         summaryText = summary(afterDetectResult, language);
@@ -167,8 +167,8 @@ public class OcrRestController {
 
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
-         language = languageFirst(language);
-         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+         language = languageFirst(language).toUpperCase();
+         prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
@@ -309,7 +309,7 @@ public class OcrRestController {
      */
      @PostMapping("/tag")
      public ResponseEntity<?> vision(@RequestParam("scanResult") String scanResult, @RequestParam("language") String language) throws IllegalStateException, IOException {
-    	 language = languageFirst(language); // kor+eng와 같은 형태에서 앞의 kor만 사용
+    	 language = languageFirst(language).toUpperCase(); // kor+eng와 같은 형태에서 앞의 kor만 사용
     	 String prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
          String jsonTag = ""; // json 형식의 요약 태그를 보관
          String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
@@ -350,8 +350,8 @@ public class OcrRestController {
          
          result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR); 
          
-         language = languageFirst(language);  // kor+eng와 같은 형태에서 앞의 kor만 사용
-         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+         language = languageFirst(language).toUpperCase();  // kor+eng와 같은 형태에서 앞의 kor만 사용
+         prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
@@ -405,8 +405,8 @@ public class OcrRestController {
          
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
-         language = languageFirst(language);  // kor+eng와 같은 형태에서 앞의 kor만 사용
-         prompt = "FIX_TYPO_" + language.toUpperCase(); // FIX_TYPO_KOR, FIX_TYPO_ENG
+         language = languageFirst(language).toUpperCase();  // kor+eng와 같은 형태에서 앞의 kor만 사용
+         prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
          preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
