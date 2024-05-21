@@ -4,7 +4,11 @@ import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -20,6 +24,7 @@ import javax.servlet.annotation.MultipartConfig;
 
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -30,6 +35,9 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.aspose.cells.Workbook;
+import com.aspose.slides.Presentation;
+import com.aspose.slides.SaveFormat;
 import com.kennycason.kumo.CollisionMode;
 import com.kennycason.kumo.WordCloud;
 import com.kennycason.kumo.WordFrequency;
@@ -39,6 +47,9 @@ import com.kennycason.kumo.palette.ColorPalette;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
+
+import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
+import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
 /**
 * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -140,6 +151,27 @@ public class OcrRestController {
          String fileName = file.getOriginalFilename(); // 파일의 이름
          int start = 1, end = 1;
          
+         if (fileName != null && !fileName.isEmpty()) {
+             String extension = fileName.substring(fileName.lastIndexOf('.') + 1).toLowerCase();
+             
+             if (extension.equals("docx") || extension.equals("doc")) {
+             	fullPath = docToPdf(fullPath);
+             }
+             else if (extension.equals("pptx") || extension.equals("ppt")) {
+             	fullPath = pptToPdf(fullPath);
+             }
+             else if (extension.equals("xlsx") || extension.equals("xls")) {
+             	try {
+ 					fullPath = xslToPdf(fullPath);
+ 				} catch (Exception e) {
+ 					// TODO Auto-generated catch block
+ 					e.printStackTrace();
+ 				}
+             }
+             else if (extension.equals("hwp")) {
+             	
+             }
+         }
 
          result = pageSpecific(language, startPage, endPage, fullPath, result, start, end);
          
@@ -446,4 +478,48 @@ public class OcrRestController {
          return "https://quickchart.io/wordcloud?text=" + queryString.toString() + "&useWordList=true";
      }
     
+     public String docToPdf(String docPath) {
+ 		String pdfPath = null;
+ 	    try {
+ 	        InputStream doc = new FileInputStream(new File(docPath));
+ 	        XWPFDocument document = new XWPFDocument(doc);
+ 	        PdfOptions options = PdfOptions.create();
+ 	        
+ 	        pdfPath = docPath.substring(0, docPath.lastIndexOf('.')) + ".pdf";
+ 	        
+ 	        OutputStream out = new FileOutputStream(new File(pdfPath));
+ 	        PdfConverter.getInstance().convert(document, out, options);
+ 	    } catch (IOException ex) {
+ 	        System.out.println(ex.getMessage());
+ 	    }
+ 	    return pdfPath;
+ 	}
+ 	
+ 	private String xslToPdf(String xslPath) {
+ 		String pdfPath = null;
+ 		Workbook workbook;
+ 		try {
+ 			System.out.println("start");
+ 			workbook = new Workbook(xslPath);
+ 			pdfPath = xslPath.substring(0, xslPath.lastIndexOf('.')) + ".pdf";
+ 			System.out.println("pdfPath : " + pdfPath);
+// 			Worksheet ws = workbook.getWorksheets().get(0);
+// 			Shape sh = ws.getShapes().get(0);
+// 			sh.getFill().getTextureFill().setTiling(true);
+ 			workbook.save(pdfPath);
+ 		} catch (Exception e) {
+ 			// TODO Auto-generated catch block
+ 			e.printStackTrace();
+ 		}
+ 		
+ 		return pdfPath;
+ 	}
+ 	private String pptToPdf(String pptPath) {
+ 		String pdfPath = null;
+ 		Presentation presentation = new Presentation(pptPath);
+ 		pdfPath = pptPath.substring(0, pptPath.lastIndexOf('.')) + ".pdf";
+ 		presentation.save(pdfPath, SaveFormat.Pdf);
+ 		
+ 		return pdfPath;
+ 	}
 }
