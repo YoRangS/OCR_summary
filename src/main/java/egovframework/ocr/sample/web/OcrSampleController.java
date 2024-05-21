@@ -97,7 +97,51 @@ public class OcrSampleController {
 		System.out.println(file.getOriginalFilename());
 		
 		String originalFilename = file.getOriginalFilename();
-        if (originalFilename != null && !originalFilename.isEmpty()) {
+        fullPath = convertToPdf(fullPath, originalFilename);
+
+		String fileName = ""; // 파일의 이름
+		String prompt = ""; // ChatGPT에게 보낼 명령어
+		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
+		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
+		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
+		
+		int start = 1, end = 1; // 페이지의 시작과 마무리
+		
+		try {
+			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
+			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
+			if (start > end) { // 시작 페이지 값이 끝 페이지보다 큰 경우
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
+		} catch (NumberFormatException e) { // start 와 end가 숫자로 변환되지 않을 경우 오류 출력
+			e.printStackTrace();
+		}
+
+		System.out.println("Tess type:" + tessType);
+		result = checkTessType(language, tessType, UPLOAD_DIR, fullPath, result, start, end);
+		
+		System.out.println("result: " + result);
+		
+		language = languageFirst(language).toUpperCase();
+		prompt = "FIX_TYPO_" + language;
+		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
+		System.out.println("prompt: " + Prompts.getPrompt(prompt));
+		System.out.println("preprocessingResult: " + preprocessingResult);
+		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
+		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
+		
+		addTextExtract(fileName, language, model, result, afterDetectResult);
+		
+		removeFile(fullPath);
+
+		return "ocr/01_ocr/ocrTessResult";
+	}
+
+	private String convertToPdf(String fullPath, String originalFilename) {
+		if (originalFilename != null && !originalFilename.isEmpty()) {
             String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
             
             if (extension.equals("docx") || extension.equals("doc")) {
@@ -118,30 +162,13 @@ public class OcrSampleController {
             	
             }
         }
-
-		String fileName = ""; // 파일의 이름
-		String prompt = ""; // ChatGPT에게 보낼 명령어
-		String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤버전
-		String pageText = ""; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
-		String preprocessingResult = ""; // ChatGPT에게 오타수정을 요청한 후 텍스트
-		String afterDetectResult = ""; // 민감정보 검출 후 텍스트
-		
-		int start = 1, end = 1; // 페이지의 시작과 마무리
-		String imagePath = "";
-		
-		try {
-			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
-			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
-			if (start > end) { // 시작 페이지 값이 끝 페이지보다 큰 경우
-				int tmp = start;
-				start = end;
-				end = tmp;
-			}
-		} catch (NumberFormatException e) { // start 와 end가 숫자로 변환되지 않을 경우 오류 출력
-			e.printStackTrace();
-		}
-
-		System.out.println("Tess type:" + tessType);
+		return fullPath;
+	}
+	
+	private String checkTessType(String language, String tessType, String UPLOAD_DIR, String fullPath, String result,
+			int start, int end) {
+		String pageText; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
+		String imagePath; // 이미지 경로
 		if ("tess".equals(tessType)) { // 기본값으로 행동할 경우
 			System.out.println("Doing tess!");
 			System.out.println(fullPath.substring(fullPath.lastIndexOf("//") + 1));
@@ -172,26 +199,9 @@ public class OcrSampleController {
 				imgFile.delete(); 
 			}
 		}
-		
-		System.out.println("result: " + result);
-		
-		language = languageFirst(language).toUpperCase();
-		prompt = "FIX_TYPO_" + language;
-		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
-		System.out.println("prompt: " + Prompts.getPrompt(prompt));
-		System.out.println("preprocessingResult: " + preprocessingResult);
-		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-		afterDetectResult = blockRequest(language, prompt, result, maxOutputToken);
-		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
-		
-		addTextExtract(fileName, language, model, result, result);
-		addTextExtract(fileName, language, model, result, afterDetectResult);
-		
-		removeFile(fullPath);
-
-		return "ocr/01_ocr/ocrTessResult";
+		return result;
 	}
-
+	
 	/**
 	 * cropTess.do이름의 POST 타입 호출을 받아 텍스트 추출
 	 * 
@@ -250,7 +260,6 @@ public class OcrSampleController {
 		System.out.println(fileName);
 		System.out.println(language);
 		
-		addTextExtract(fileName, language, model, result, result);
 		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		System.out.println(model.toString());
