@@ -184,7 +184,7 @@ public class OcrSampleController {
 		afterDetectResult = blockRequest(language, prompt, result, maxOutputToken);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
 		
-		addTextExtract(fileName, language, model, result, preprocessingResult);
+		addTextExtract(fileName, language, model, result, result);
 		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		removeFile(fullPath);
@@ -250,8 +250,8 @@ public class OcrSampleController {
 		System.out.println(fileName);
 		System.out.println(language);
 		
-		addTextExtract(fileName, language, model, result, preprocessingResult);
-		//addTextExtract(fileName, language, model, result, afterDetectResult);
+		addTextExtract(fileName, language, model, result, result);
+		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		System.out.println(model.toString());
 		
