@@ -23,7 +23,7 @@ public class Keys {
     
     /*키 인스턴스 생선*/
     public static Keys getInstance() {
-        if (keys == null)
+        if (keys == null)	
             keys = new Keys();
         return keys;
     }
