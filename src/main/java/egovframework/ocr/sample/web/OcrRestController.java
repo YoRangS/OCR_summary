@@ -18,6 +18,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.annotation.MultipartConfig;
@@ -49,6 +50,7 @@ import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.service.OpenAiService;
 
+import egovframework.rte.fdl.property.EgovPropertyService;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
@@ -75,8 +77,6 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
         )
 public class OcrRestController {
 	
-	private int maxInputToken = UseGPT.maxInputToken;
-	private int maxOutputToken = UseGPT.maxOutputToken;
 	
 	@Autowired
     private ServletContext servletContext;
@@ -84,11 +84,29 @@ public class OcrRestController {
     /** 이미지 업로드 디렉토리 */
 	private String UPLOAD_DIR;
 	
-    @GetMapping("/{name}")
-    public String sayHello(@PathVariable String name) {
-        String result="Hello eGovFramework!! name : " + name;  
-        return result;
+	
+	@Resource(name="GPTPropertiesService")
+    protected EgovPropertyService GPTPropertiesService;
+	
+//	private String test = GPTPropertiesService.getString("GPT_KEY");
+
+//	private int maxInputToken = Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"));
+//	private int maxOutputToken = Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN"));
+//	private int maxInputToken = 16385;
+//	private int maxOutputToken = 4096;
+	
+    @GetMapping("/test")
+    public String test() {
+    	String test = GPTPropertiesService.getString("GPT_KEY");
+    	UseGPT t = new UseGPT(GPTPropertiesService.getString("GPT_KEY"),
+    			GPTPropertiesService.getString("GPT_MODEL"),
+    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")),
+    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
+    	t.printVariables();
+        return test;
     }
+    
+    
     /**
     * tess_sum이름의 POST 타입 호출을 받아 텍스트 추출 및 요약
     * @param file 이미지/pdf 파일
@@ -103,7 +121,8 @@ public class OcrRestController {
     public ResponseEntity<?> tess(@RequestParam("file") MultipartFile file, @RequestParam("language") String language) throws IllegalStateException, IOException {
         //MultipartFile file = (MultipartFile) input.get("file");
         //String language = (String) input.get("language");
-        
+    	int maxInputToken = Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"));
+    	int maxOutputToken = Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN"));
         String fullPath = transferFile(file);
         String prompt = ""; // ChatGPT에게 보낼 명령어
         String result = ""; // 테서렉트를 돌리고 안의 스페이스와 "을 없앤 텍스트
@@ -169,10 +188,10 @@ public class OcrRestController {
          
          language = languageFirst(language).toUpperCase();
          prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
-         preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
+         preprocessingResult = blockRequest(language, prompt, result, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN"))); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-         afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+         afterDetectResult = blockRequest(language, prompt, preprocessingResult, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
          afterDetectResult = afterDetectResult.replaceAll("\"", "");
          summaryText = summary(afterDetectResult, language);
          
@@ -282,7 +301,7 @@ public class OcrRestController {
         String prompt = "SUMMARY_" + language.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
         String summaryText = ""; // 요약 텍스트를 보관
         
-        summaryText = blockRequest(language, prompt, text, maxOutputToken);
+        summaryText = blockRequest(language, prompt, text, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
         summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
         summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
 
@@ -352,10 +371,10 @@ public class OcrRestController {
          
          language = languageFirst(language).toUpperCase();  // kor+eng와 같은 형태에서 앞의 kor만 사용
          prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
-         preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
+         preprocessingResult = blockRequest(language, prompt, result, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN"))); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-         afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+         afterDetectResult = blockRequest(language, prompt, preprocessingResult, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
          afterDetectResult = afterDetectResult.replaceAll("\"", "");
          
          prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
@@ -407,10 +426,10 @@ public class OcrRestController {
          
          language = languageFirst(language).toUpperCase();  // kor+eng와 같은 형태에서 앞의 kor만 사용
          prompt = "FIX_TYPO_" + language; // FIX_TYPO_KOR, FIX_TYPO_ENG
-         preprocessingResult = blockRequest(language, prompt, result, maxOutputToken); // text after using ChatGPT to fix typos
+         preprocessingResult = blockRequest(language, prompt, result, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN"))); // text after using ChatGPT to fix typos
          preprocessingResult = preprocessingResult.replaceAll("\"", ""); // restapi로 호출할때 오류를 일으키는 큰 따옴표 제거
          prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-         afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+         afterDetectResult = blockRequest(language, prompt, preprocessingResult, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
          afterDetectResult = afterDetectResult.replaceAll("\"", "");
          
          prompt = "TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
@@ -442,7 +461,7 @@ public class OcrRestController {
  		
  		prompt = "PUR_" + language.toUpperCase();
           tagAndText = topTags + "\n" + scanResult;
-          purpose = blockRequest(language, prompt, tagAndText, maxInputToken); // topTags 기반으로 텍스트의 의도 추출
+          purpose = blockRequest(language, prompt, tagAndText, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"))); // topTags 기반으로 텍스트의 의도 추출
           
           System.out.println("[rest] prompt: " + prompt);
           System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
@@ -462,7 +481,7 @@ public class OcrRestController {
           System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
           System.out.println("[rest] tags: " + jsonTag);
           
-          topTags = blockRequest(language, prompt, jsonTag, maxInputToken); // 가장 빈도수 높은 태그 5개로 추리기
+          topTags = blockRequest(language, prompt, jsonTag, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"))); // 가장 빈도수 높은 태그 5개로 추리기
  		return topTags;
  	}
  	
@@ -473,7 +492,7 @@ public class OcrRestController {
           System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
           System.out.println("[rest] scanResult: " + scanResult);
           
-          jsonTag = blockRequest(language, prompt, scanResult, maxInputToken);
+          jsonTag = blockRequest(language, prompt, scanResult, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")));
           jsonTag = concatJson(jsonTag);
  		return jsonTag;
  	}
@@ -500,7 +519,11 @@ public class OcrRestController {
 			blockText = result.substring(i * tokenNum, endIndex); // 현재 인덱스에서 끝 인덱스까지
 			System.out.println("blockText: " + blockText);
 			System.out.println("Promt: " + Prompts.getPrompt(prompt));
-			blockOutput = UseGPT.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
+			UseGPT gpt = new UseGPT(GPTPropertiesService.getString("GPT_KEY"),
+	    			GPTPropertiesService.getString("GPT_MODEL"),
+	    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")),
+	    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
+			blockOutput = gpt.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
 			System.out.println("End");
 			mergeResult = mergeResult.concat(blockOutput); // GPT 호출 내용 합치기
 		}

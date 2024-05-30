@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Base64;
 
+import javax.annotation.Resource;
 import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
@@ -32,6 +33,7 @@ import com.aspose.cells.Worksheet;
 import com.aspose.slides.Presentation;
 import com.aspose.slides.SaveFormat;
 
+import egovframework.rte.fdl.property.EgovPropertyService;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
@@ -52,11 +54,15 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class OcrSampleController {
 	
-	private int maxInputToken = UseGPT.maxInputToken;
-	private int maxOutputToken = UseGPT.maxOutputToken;
+	private int maxInputToken = 16385;
+	private int maxOutputToken = 4096;
 	
 	@Autowired
     private ServletContext servletContext;
+
+	@Resource(name="GPTPropertiesService")
+    protected EgovPropertyService GPTPropertiesService;
+	
 	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
@@ -476,7 +482,11 @@ public class OcrSampleController {
 			blockText = result.substring(i * tokenNum, endIndex); // 현재 인덱스에서 끝 인덱스까지
 			System.out.println("blockText: " + blockText);
 			System.out.println("Promt: " + Prompts.getPrompt(prompt));
-			blockOutput = UseGPT.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
+			UseGPT gpt = new UseGPT(GPTPropertiesService.getString("GPT_KEY"),
+	    			GPTPropertiesService.getString("GPT_MODEL"),
+	    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")),
+	    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
+			blockOutput = gpt.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
 			System.out.println("End");
 			mergeResult = mergeResult.concat(blockOutput); // GPT 호출 내용 합치기
 		}

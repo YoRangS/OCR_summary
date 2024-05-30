@@ -19,14 +19,27 @@ public class UseGPT {
      * @return ChatGPT를 통해 생성된 텍스트
      */
 	
-	public static int maxInputToken = KeyValue.maxInputToken;  // GPT3.5 Turbo 기준 입출력 토큰 16,385. 16385-4000=12385
-	//public static int maxInputToken = 120000;  // GPT4 Turbo 기준 입출력 토큰 128,000
-	public static int maxOutputToken = KeyValue.maxOutputToken; // GPT3.5 Turbo 기준 출력 최대 토큰 4,096
+	private String gptKey; // OpenAI API 키
+	private String gptModel; //사용할 모델명 (예: gpt-3.5-turbo)
+	private int maxInputToken;  // GPT3.5 Turbo 기준 입출력 토큰 16,385. 16385-4000=12385
+	private int maxOutputToken; // GPT3.5 Turbo 기준 출력 최대 토큰 4,096
 	
-    public static String useGPT(String prompt, String content) {
-        Keys keysInstance = Keys.getInstance(); // OpenAI API 활용을 위한 키 인스턴스
-        String gptKey = keysInstance.getGptKey(); // 인스턴스의 키값
-        String gptModel = keysInstance.getGptModel();
+	/**
+	 * 
+	 * @param	GPTKEY 		API Key - string
+	 * @param 	GPTMODEL 	Model name - string
+	 * @param 	INPUT 		Max input token number - integer
+	 * @param 	OUTPUT 		Max output token number - integer
+	 */
+	public UseGPT(String GPTKEY, String GPTMODEL, int INPUT, int OUTPUT) {
+		this.gptKey = GPTKEY;
+		this.gptModel = GPTMODEL;
+		this.maxInputToken = INPUT;
+		this.maxOutputToken = OUTPUT;
+		
+	}
+	
+    public String useGPT(String prompt, String content) {
         OpenAiService service = new OpenAiService(gptKey,Duration.ofMinutes(9999)); // OpenAI 서비스 연결
 
         List<ChatMessage> message = new ArrayList<ChatMessage>(); // GPT에게 보낼 메세지 어레이
@@ -41,5 +54,11 @@ public class UseGPT {
 
         return service.createChatCompletion(completionRequest).getChoices().get(0)
                 .getMessage().getContent();
+    }
+    public void printVariables() {
+    	System.out.println("key: " + gptKey);
+    	System.out.println("model: " + gptModel);
+    	System.out.println("input token: " + maxInputToken);
+    	System.out.println("output token: " + maxOutputToken);
     }
 }
