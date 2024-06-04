@@ -132,7 +132,7 @@ public class OcrSampleController {
 		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
 		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
-		
+		//
 		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		removeFile(fullPath);
