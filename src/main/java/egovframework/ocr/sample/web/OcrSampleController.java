@@ -56,11 +56,18 @@ public class OcrSampleController {
 	
 	private int maxInputToken = 16385;
 	private int maxOutputToken = 4096;
-	private OcrFunction ocrFunction = new OcrFunction();
-	
+
 	@Autowired
     private ServletContext servletContext;
+
+	@Resource(name="GPTPropertiesService")
+    protected EgovPropertyService GPTPropertiesService;
 	
+	private final OcrFunction ocrFunction;
+	@Autowired
+    public OcrSampleController(OcrFunction ocrFunction) {
+        this.ocrFunction = ocrFunction;
+    }
 	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
@@ -96,7 +103,6 @@ public class OcrSampleController {
 		} else {
 			System.out.println("isEmpty!");
 		}
-		
 		
 		System.out.println("fullPath: " + fullPath);
 		System.out.println(file.getOriginalFilename());
