@@ -1,23 +1,16 @@
 package egovframework.ocr.sample.web;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Base64;
 
-import javax.imageio.ImageIO;
+import javax.annotation.Resource;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -26,14 +19,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.aspose.cells.Shape;
-import com.aspose.cells.Workbook;
-import com.aspose.cells.Worksheet;
-import com.aspose.slides.Presentation;
-import com.aspose.slides.SaveFormat;
 
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
+import egovframework.rte.fdl.property.EgovPropertyService;
 
 /**
  * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -52,11 +39,20 @@ import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 @MultipartConfig(fileSizeThreshold = 1024 * 1024, maxFileSize = 1024 * 1024 * 5, maxRequestSize = 1024 * 1024 * 5 * 5)
 public class OcrSampleController {
 	
-	private int maxInputToken = UseGPT.maxInputToken;
-	private int maxOutputToken = UseGPT.maxOutputToken;
-	
+	private int maxInputToken = 16385;
+	private int maxOutputToken = 4096;
+
 	@Autowired
     private ServletContext servletContext;
+
+	@Resource(name="GPTPropertiesService")
+    protected EgovPropertyService GPTPropertiesService;
+	
+	private final OcrFunction ocrFunction;
+	@Autowired
+    public OcrSampleController(OcrFunction ocrFunction) {
+        this.ocrFunction = ocrFunction;
+    }
 	
 	@RequestMapping(value = "/tess.do", method = RequestMethod.GET) // 시작 페이지로 가기
 	public String test() {
@@ -97,7 +93,7 @@ public class OcrSampleController {
 		System.out.println(file.getOriginalFilename());
 		
 		String originalFilename = file.getOriginalFilename();
-        fullPath = convertToPdf(fullPath, originalFilename);
+        fullPath = ocrFunction.convertToPdf(fullPath, originalFilename);
 
 		String fileName = ""; // 파일의 이름
 		String prompt = ""; // ChatGPT에게 보낼 명령어
@@ -120,86 +116,24 @@ public class OcrSampleController {
 		}
 
 		System.out.println("Tess type:" + tessType);
-		result = checkTessType(language, tessType, UPLOAD_DIR, fullPath, result, start, end);
+		result = ocrFunction.checkTessType(language, tessType, UPLOAD_DIR, fullPath, result, start, end);
 		
 		System.out.println("result: " + result);
 		
-		language = languageFirst(language).toUpperCase();
+		language = ocrFunction.languageFirst(language).toUpperCase();
 		prompt = "FIX_TYPO_" + language;
-		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
+		preprocessingResult = ocrFunction.blockRequest(language, prompt, result, maxOutputToken);
 		System.out.println("prompt: " + Prompts.getPrompt(prompt));
 		System.out.println("preprocessingResult: " + preprocessingResult);
 		prompt = "DETECT_SEN_" + language; // DETECT_SEN_KOR, DETECT_SEN_ENG
-		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+		afterDetectResult = ocrFunction.blockRequest(language, prompt, preprocessingResult, maxOutputToken);
 		fileName = file.getOriginalFilename().replaceAll(" ", "_"); // replace all spaces with _ to prevent file name
-		//
-		addTextExtract(fileName, language, model, result, afterDetectResult);
 		
-		removeFile(fullPath);
+		ocrFunction.addTextExtract(fileName, language, model, result, afterDetectResult);
+		
+		ocrFunction.removeFile(fullPath);
 
 		return "ocr/01_ocr/ocrTessResult";
-	}
-
-	private String convertToPdf(String fullPath, String originalFilename) {
-		if (originalFilename != null && !originalFilename.isEmpty()) {
-            String extension = originalFilename.substring(originalFilename.lastIndexOf('.') + 1).toLowerCase();
-            
-            if (extension.equals("docx") || extension.equals("doc")) {
-            	fullPath = docToPdf(fullPath);
-            }
-            else if (extension.equals("pptx") || extension.equals("ppt")) {
-            	fullPath = pptToPdf(fullPath);
-            }
-            else if (extension.equals("xlsx") || extension.equals("xls")) {
-            	try {
-					fullPath = xslToPdf(fullPath);
-				} catch (Exception e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-            }
-            else if (extension.equals("hwp")) {
-            	
-            }
-        }
-		return fullPath;
-	}
-	
-	private String checkTessType(String language, String tessType, String UPLOAD_DIR, String fullPath, String result,
-			int start, int end) {
-		String pageText; // tessLimit 옵션을 사용할 경우의 각 페이지 마다의 텍스트.
-		String imagePath; // 이미지 경로
-		if ("tess".equals(tessType)) { // 기본값으로 행동할 경우
-			System.out.println("Doing tess!");
-			System.out.println(fullPath.substring(fullPath.lastIndexOf("//") + 1));
-			result = OcrTesseract.ocrTess(fullPath.substring(fullPath.lastIndexOf("\\") + 1), language, UPLOAD_DIR);
-//			result = OcrTesseract.ocrTess(file.getOriginalFilename(), language, UPLOAD_DIR);
-		} else if ("tessLimit".equals(tessType)) { // 기본값으로 행동하지 않을 경우
-			System.out.println("Not doing tess!");
-			
-			for (int i = start; i <= end; i++) { 
-				System.out.println("Checking for " + i);
-				imagePath = UPLOAD_DIR + "image_page_" + i + ".png"; // 각 페이지 마다 임시이미지 파일 생성. 
-				System.out.println("Image directory" + imagePath); 
-				
-				try (PDDocument document = PDDocument.load(new File(fullPath))) { 
-					PDFRenderer pdfRenderer = new PDFRenderer(document);
-					BufferedImage image = pdfRenderer.renderImageWithDPI(i-1, 300); // 페이지, 300은 이미지 렌더링의 수준. 300은 높은수준.
-					ImageIO.write(image, "png", new File(imagePath)); // 이미지를 imagePath의 디렉토리에 image_page 이름으로 저장.
-					System.out.println("Saving image done");
-				} 
-				catch (IOException e) { //Handle the exception appropriately 
-					e.printStackTrace(); 
-				}
-				
-				File imgFile = new File(imagePath);
-				pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
-				result = result + pageText + "\n";
-				
-				imgFile.delete(); 
-			}
-		}
-		return result;
 	}
 	
 	/**
@@ -248,11 +182,11 @@ public class OcrSampleController {
 		
 		result = OcrTesseract.ocrTess(fileName, language, UPLOAD_DIR);
 		
-		language = languageFirst(language).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		language = ocrFunction.languageFirst(language).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
 		prompt = "FIX_TYPO_" + language;
-		preprocessingResult = blockRequest(language, prompt, result, maxOutputToken);
+		preprocessingResult = ocrFunction.blockRequest(language, prompt, result, maxOutputToken);
 		prompt = "DETECT_SEN_" + language.toUpperCase(); // DETECT_SEN_KOR, DETECT_SEN_ENG
-		afterDetectResult = blockRequest(language, prompt, preprocessingResult, maxOutputToken);
+		afterDetectResult = ocrFunction.blockRequest(language, prompt, preprocessingResult, maxOutputToken);
 		fileName = fileName.replaceAll(" ", "_"); // replace all spaces with _ to prevent file name being lost
 		
 		System.out.println(result);
@@ -260,40 +194,13 @@ public class OcrSampleController {
 		System.out.println(fileName);
 		System.out.println(language);
 		
-		addTextExtract(fileName, language, model, result, afterDetectResult);
+		ocrFunction.addTextExtract(fileName, language, model, result, afterDetectResult);
 		
 		System.out.println(model.toString());
 		
-		removeFile(fullPath);
+		ocrFunction.removeFile(fullPath);
 		
 		return "ocr/ocrSampleList";
-	}
-
-	private void addTextExtract(String fileName, String language, Model model, String result,
-			String preprocessingResult) {
-		/* Saves results to webpage model */
-		model.addAttribute("scan", result);
-		model.addAttribute("result", preprocessingResult);
-		model.addAttribute("fileName", fileName);
-		model.addAttribute("lang", language);
-	}
-	
-	private void removeFile(String fullPath) {
-		if (fullPath != null) { // remove temporary file
-			File doDelete = new File(fullPath);
-			if (doDelete.exists()) {
-				doDelete.delete();
-			}
-		}
-	}
-	
-	private String languageFirst(String language) {
-		System.out.println(language);
-		int plusIndex = language.indexOf('+');
-		if (plusIndex != -1) { // '+'가 발견된 경우
-			language = language.substring(0, plusIndex); // kor+eng의 경우 kor만 고려. prompt를 사용할 언어와의 상호작용을 위함
-		}
-		return language;
 	}
 	
 	/**
@@ -309,11 +216,9 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/summary.do", method = RequestMethod.POST)
 	public String summary(@RequestParam String scanResult, String fileName, String lang, Model model) {
-		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
-		String prompt = "SUMMARY_" + lang; // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
+		lang = ocrFunction.languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String fileTrim = fileName; // .png등 파일 포멧을 떼고 저장하기 위함
 		String summaryText = ""; // 요약 텍스트를 보관
-		
 		
 		int dotIndex = fileName.lastIndexOf('.');
 		
@@ -322,11 +227,8 @@ public class OcrSampleController {
 		} else {
 			System.out.println("파일에 . 이 존재하지 않습니다");
 		}
-		
-		System.out.println("scanResult: " + scanResult);
-		summaryText = blockRequest(lang, prompt, scanResult, maxInputToken);
-		summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
-		summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
+
+		summaryText = ocrFunction.summary(scanResult, lang);
 
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("fileTrim", fileTrim);
@@ -389,7 +291,7 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/tag.do", method = RequestMethod.POST)
 	public String vision(@RequestParam String scanResult, String lang, Model model) {
-		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		lang = ocrFunction.languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String prompt = "TAG_" + lang; // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String jsonTag = ""; // json 형식의 요약 태그를 보관
 
@@ -397,13 +299,13 @@ public class OcrSampleController {
 		System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
 		System.out.println("scanResult: " + scanResult);
 
-		jsonTag = blockRequest(lang, prompt, scanResult, maxInputToken);
-		jsonTag = concatJson(jsonTag);
+		jsonTag = ocrFunction.blockRequest(lang, prompt, scanResult, maxInputToken);
+		jsonTag = ocrFunction.concatJson(jsonTag);
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("result", scanResult);
 		model.addAttribute("lang", lang);
 		model.addAttribute("jsonTag", jsonTag);
-		model.addAttribute("imgLink", convertToLink(jsonTag));
+		model.addAttribute("imgLink", ocrFunction.convertToLink(jsonTag));
 
 		return "ocr/01_ocr/ocrTag";
 	}
@@ -421,7 +323,7 @@ public class OcrSampleController {
 	 */
 	@RequestMapping(value = "/purpose.do", method = RequestMethod.POST)
 	public String purpose(@RequestParam String scanResult, String lang, String jsonTag, Model model) {
-		lang = languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
+		lang = ocrFunction.languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
 		String prompt = "TOP_TAG_" + lang; // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
 		String topTags = ""; // 태그들중 가장 빈도수가 높은 태그 5가지
 		String purpose = ""; // 태그를 기반으로 한 텍스트의 의도 추출
@@ -431,8 +333,8 @@ public class OcrSampleController {
 		System.out.println("getPrompt: " + Prompts.getPrompt(prompt));
 		System.out.println("tags: " + jsonTag);
 
-		topTags = blockRequest(lang, prompt, scanResult, maxInputToken);
-		topTags = concatJson(topTags);
+		topTags = ocrFunction.blockRequest(lang, prompt, scanResult, maxInputToken);
+		topTags = ocrFunction.concatJson(topTags);
 		
 		prompt = "PUR_" + lang;
 		tagAndText = topTags + "\n" + scanResult;
@@ -442,117 +344,15 @@ public class OcrSampleController {
 		System.out.println("Top 5 tags: " + topTags);
 		System.out.println("Tag and Text: " + tagAndText);
 
-		purpose = blockRequest(lang, prompt, tagAndText, maxInputToken);
+		purpose = ocrFunction.blockRequest(lang, prompt, tagAndText, maxInputToken);
 
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("result", scanResult);
 		model.addAttribute("lang", lang);
 		model.addAttribute("jsonTag", jsonTag);
 		model.addAttribute("purpose", purpose);
-		model.addAttribute("imgLink", convertToLink(jsonTag));
+		model.addAttribute("imgLink", ocrFunction.convertToLink(jsonTag));
 
 		return "ocr/01_ocr/ocrTag";
-	}
-	
-	private String concatJson(String jsonString) {
-		jsonString = jsonString.replace("}{", ", ");
-		jsonString = jsonString.replace("} {", ", ");
-		return jsonString;
-	}
-	
-	private String blockRequest(String language, String prompt, String result, int tokenNum) { // 언어, 프롬프트, 결과, 사용 토큰 숫자
-		String blockText, blockOutput; // 각 블력의 텍스트, 호출된 결과를 받기 위한 함수
-		String mergeResult = ""; // 전체 텍스트. 각 블럭당 호출의 결과물을 합침
-		int charNum, blockNum = 0, i, endIndex;
-		
-		charNum = result.length();
-		System.out.println("charNum: " + charNum);
-		blockNum = (charNum/tokenNum) + 1; // 텍스트 글자수 / 전체 입력 토큰의 반올림을 블럭의 갯수로 정함
-		System.out.println("blockNum: " + blockNum);
-		
-		for (i = 0; i < blockNum; i++) { // 블럭 갯수 만큼 반복
-			System.out.println("Start");
-			endIndex = Math.min((i + 1) * tokenNum, charNum); // 인덱스의 끝부분 표시. 최대를 넘지 않도록 비교함
-			blockText = result.substring(i * tokenNum, endIndex); // 현재 인덱스에서 끝 인덱스까지
-			System.out.println("blockText: " + blockText);
-			System.out.println("Promt: " + Prompts.getPrompt(prompt));
-			blockOutput = UseGPT.useGPT(Prompts.getPrompt(prompt), blockText); // 블럭에 대한 요청을 받기
-			System.out.println("End");
-			mergeResult = mergeResult.concat(blockOutput); // GPT 호출 내용 합치기
-		}
-		
-		return mergeResult;
-	}
-	
-	private static String convertToLink(String jsonString) {
-		// JSON 문자열을 중괄호를 기준으로 나누어 배열로 변환
-		System.out.println("Json to deal with: " + jsonString);
-		String[] keyValuePairs = jsonString.substring(1, jsonString.length() - 1).split(",");
-
-		// 원하는 형식의 문자열로 변환
-		StringBuilder queryString = new StringBuilder();
-
-		for (String pair : keyValuePairs) {
-			// 각 키-값 쌍을 콜론을 기준으로 나누기
-			String[] entry = pair.split(":");
-
-			// 특수 문자 처리를 위해 key를 변환
-			String key = entry[0].trim().replace("\"", "").replace(" ", "%20").replace("_", "%5F");
-
-			// 쿼리 스트링에 추가
-			queryString.append(key).append(":").append(entry[1].trim()).append(",");
-		}
-
-		// 마지막 쉼표 제거
-		if (queryString.length() > 0) {
-			queryString.deleteCharAt(queryString.length() - 1);
-		}
-
-		return "https://quickchart.io/wordcloud?text=" + queryString.toString() + "&useWordList=true";
-	}
-	
-	public String docToPdf(String docPath) {
-		String pdfPath = null;
-	    try {
-	        InputStream doc = new FileInputStream(new File(docPath));
-	        XWPFDocument document = new XWPFDocument(doc);
-	        PdfOptions options = PdfOptions.create();
-	        
-	        pdfPath = docPath.substring(0, docPath.lastIndexOf('.')) + ".pdf";
-	        
-	        OutputStream out = new FileOutputStream(new File(pdfPath));
-	        PdfConverter.getInstance().convert(document, out, options);
-	    } catch (IOException ex) {
-	        System.out.println(ex.getMessage());
-	    }
-	    return pdfPath;
-	}
-	
-	private String xslToPdf(String xslPath) {
-		String pdfPath = null;
-		Workbook workbook;
-		try {
-			System.out.println("start");
-			workbook = new Workbook(xslPath);
-			pdfPath = xslPath.substring(0, xslPath.lastIndexOf('.')) + ".pdf";
-			System.out.println("pdfPath : " + pdfPath);
-//			Worksheet ws = workbook.getWorksheets().get(0);
-//			Shape sh = ws.getShapes().get(0);
-//			sh.getFill().getTextureFill().setTiling(true);
-			workbook.save(pdfPath);
-		} catch (Exception e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-		
-		return pdfPath;
-	}
-	private String pptToPdf(String pptPath) {
-		String pdfPath = null;
-		Presentation presentation = new Presentation(pptPath);
-		pdfPath = pptPath.substring(0, pptPath.lastIndexOf('.')) + ".pdf";
-		presentation.save(pdfPath, SaveFormat.Pdf);
-		
-		return pdfPath;
 	}
 }
