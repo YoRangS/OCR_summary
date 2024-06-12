@@ -1,24 +1,16 @@
 package egovframework.ocr.sample.web;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.util.Base64;
 
 import javax.annotation.Resource;
-import javax.imageio.ImageIO;
 import javax.servlet.ServletContext;
 import javax.servlet.ServletException;
 import javax.servlet.annotation.MultipartConfig;
 
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -27,15 +19,8 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 
-import com.aspose.cells.Shape;
-import com.aspose.cells.Workbook;
-import com.aspose.cells.Worksheet;
-import com.aspose.slides.Presentation;
-import com.aspose.slides.SaveFormat;
 
 import egovframework.rte.fdl.property.EgovPropertyService;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
-import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 
 /**
  * jsp파일들의 호출을 처리하는 컨트롤러 클래스
@@ -232,10 +217,8 @@ public class OcrSampleController {
 	@RequestMapping(value = "/summary.do", method = RequestMethod.POST)
 	public String summary(@RequestParam String scanResult, String fileName, String lang, Model model) {
 		lang = ocrFunction.languageFirst(lang).toUpperCase(); // kor+eng의 경우 prompt를 kor로 하기 위함
-		String prompt = "SUMMARY_" + lang; // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
 		String fileTrim = fileName; // .png등 파일 포멧을 떼고 저장하기 위함
 		String summaryText = ""; // 요약 텍스트를 보관
-		
 		
 		int dotIndex = fileName.lastIndexOf('.');
 		
@@ -244,11 +227,8 @@ public class OcrSampleController {
 		} else {
 			System.out.println("파일에 . 이 존재하지 않습니다");
 		}
-		
-		System.out.println("scanResult: " + scanResult);
-		summaryText = ocrFunction.blockRequest(lang, prompt, scanResult, maxInputToken);
-		summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
-		summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
+
+		summaryText = ocrFunction.summary(scanResult, lang);
 
 		/* 결과들을 웹페이지 모델에 요소들로 추가해줌 */
 		model.addAttribute("fileTrim", fileTrim);
