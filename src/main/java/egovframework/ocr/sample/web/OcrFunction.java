@@ -17,8 +17,8 @@ import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.aspose.cells.Workbook;
 import com.aspose.slides.Presentation;
@@ -33,6 +33,11 @@ public class OcrFunction {
 
 	@Resource(name="GPTPropertiesService")
     protected EgovPropertyService GPTPropertiesService;
+	
+	private String UPLOAD_DIR;
+	
+	@Autowired
+    private ServletContext servletContext;
 	
     public String convertToPdf(String fullPath, String originalFilename) {
         if (originalFilename != null && !originalFilename.isEmpty()) {
@@ -85,7 +90,6 @@ public class OcrFunction {
 //			sh.getFill().getTextureFill().setTiling(true);
 			workbook.save(pdfPath);
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		
@@ -100,6 +104,19 @@ public class OcrFunction {
 		return pdfPath;
 	}
     
+    public String transferFile(MultipartFile file) throws IOException {
+  	  UPLOAD_DIR = servletContext.getRealPath("/WEB-INF/classes/saveImage/");
+      String fullPath = null; // path to upload image file
+      if(!file.isEmpty()) {
+          fullPath = UPLOAD_DIR + file.getOriginalFilename(); // set path if file is not empty
+          System.out.println("File Save fullPath = " + fullPath);
+          file.transferTo(new File(fullPath));
+      } else {
+          System.out.println("isEmpty!");
+      }
+		return fullPath;
+	}
+	
     public void removeFile(String fullPath) {
 		if (fullPath != null) { // remove temporary file
 			File doDelete = new File(fullPath);
@@ -152,6 +169,101 @@ public class OcrFunction {
         }
         return result;
     }
+    
+ 	public String pageSpecific(String language, String startPage, String endPage, String fullPath, String result,
+			int start, int end) {
+		String pageText = ""; // PDF의 각 이미지 마다의 텍스트
+		String imagePath = ""; // 새롭게 만들어질 각 이미지의 위치
+		
+		try {
+ 			start = Integer.parseInt(startPage); // tessLimit 옵션 선택시 시작 페이지
+ 			end = Integer.parseInt(endPage); // tessLimit 옵션 선택시 끝나는 페이지
+ 			if (start > end) { // 시작 페이지 값이 끝 페이지보다 큰 경우
+				int tmp = start;
+				start = end;
+				end = tmp;
+			}
+ 		 } catch (NumberFormatException e) { // start 와 end가 숫자로 변환되지 않을 경우 오류 출력
+ 			e.printStackTrace();
+ 		 }
+         
+         for (int i = start; i <= end; i++) { 
+			System.out.println("Checking for " + i);
+			imagePath = UPLOAD_DIR + "image_page_" + i + ".png"; // 각 페이지 마다 임시이미지 파일 생성. 
+			System.out.println("Image directory" + imagePath); 
+			
+			try (PDDocument document = PDDocument.load(new File(fullPath))) { 
+				PDFRenderer pdfRenderer = new PDFRenderer(document);
+				BufferedImage image = pdfRenderer.renderImageWithDPI(i-1, 300); // 페이지, 300은 이미지 렌더링의 수준. 300은 높은수준.
+				ImageIO.write(image, "png", new File(imagePath)); // 이미지를 imagePath의 디렉토리에 image_page 이름으로 저장.
+				System.out.println("Saving image done");
+			} 
+			catch (IOException e) { //Handle the exception appropriately 
+				e.printStackTrace(); 
+			}
+			
+			File imgFile = new File(imagePath);
+			pageText = OcrTesseract.ocrTess(imgFile.getName(), language, UPLOAD_DIR);
+			result = result + pageText + "\n";
+			
+			imgFile.delete(); 
+		}
+		return result;
+	}
+    
+    public String summary(String text, String language) {
+        String prompt = "SUMMARY_" + language.toUpperCase(); // SUMMARY_KOR, SUMMARY_ENG등 언어에 맞는 요약 요청 프롬포트
+        String summaryText = ""; // 요약 텍스트를 보관
+        
+        summaryText = blockRequest(language, prompt, text, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
+        summaryText = summaryText.replaceAll("\\.", ".\n"); // .뒤에 엔터키를 적용"
+        summaryText = summaryText.replaceAll("(?m)^[\\s&&[^\\n]]+|^[\n]", ""); // 엔터키로 인해 생긴 스페이스를 지워줌
+
+        return summaryText;
+    }
+    
+    public String getPurpose(String scanResult, String language, String topTags) {
+   	String prompt;
+		String purpose;
+		String tagAndText;
+		
+		prompt = "PUR_" + language.toUpperCase();
+        tagAndText = topTags + "\n" + scanResult;
+        purpose = blockRequest(language, prompt, tagAndText, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"))); // topTags 기반으로 텍스트의 의도 추출
+         
+        System.out.println("[rest] prompt: " + prompt);
+        System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("[rest] Top 5 tags: " + topTags);
+        System.out.println("[rest] Tag and Text: " + tagAndText);
+        System.out.println("[rest] Purpose" + purpose);
+		return purpose;
+	}
+	
+    public String getTopTags(String language, String jsonTag) {
+		String prompt;
+		String topTags;
+		
+		prompt = "TOP_TAG_" + language.toUpperCase(); // TAG_KOR, TAG_ENG등 언어에 맞는 요약 요청 프롬포트
+         
+        System.out.println("[rest] prompt: " + prompt);
+        System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("[rest] tags: " + jsonTag);
+         
+        topTags = blockRequest(language, prompt, jsonTag, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN"))); // 가장 빈도수 높은 태그 5개로 추리기
+		return topTags;
+	}
+	
+	public String getTags(String language, String scanResult, String prompt) {
+		String jsonTag;
+		
+		System.out.println("[rest] prompt: " + prompt);
+        System.out.println("[rest] getPrompt: " + Prompts.getPrompt(prompt));
+        System.out.println("[rest] scanResult: " + scanResult);
+         
+        jsonTag = blockRequest(language, prompt, scanResult, Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")));
+        jsonTag = concatJson(jsonTag);
+		return jsonTag;
+	}
     
     public String blockRequest(String language, String prompt, String result, int tokenNum) { // 언어, 프롬프트, 결과, 사용 토큰 숫자
 		String blockText, blockOutput; // 각 블력의 텍스트, 호출된 결과를 받기 위한 함수
