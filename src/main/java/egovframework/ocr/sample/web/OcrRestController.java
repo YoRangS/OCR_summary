@@ -62,13 +62,13 @@ public class OcrRestController {
 	
     @GetMapping("/test")
     public String test() {
-    	String test = GPTPropertiesService.getString("GPT_KEY");
-    	UseGPT t = new UseGPT(GPTPropertiesService.getString("GPT_KEY"),
-    			GPTPropertiesService.getString("GPT_MODEL"),
-    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXINPUTTOKEN")),
-    			Integer.parseInt(GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN")));
-    	t.printVariables();
-        return test;
+    	String key = GPTPropertiesService.getString("GPT_KEY");
+    	String model = GPTPropertiesService.getString("GPT_MODEL");
+    	String max = GPTPropertiesService.getString("GPT_MAXINPUTTOKEN");
+    	String min = GPTPropertiesService.getString("GPT_MAXOUTPUTTOKEN");
+    	
+    	return "{ \"GPT_KEY\" : \"" + key + "\", \"GPT_MODEL\" : \"" + model + "\", \"GPT_MAXINPUTTOKEN\" : \"" + max + "\", \"GPT_MAXOUTPUTTOKEN\" : \"" + min + "\" }";
+    	
     }
     
     
